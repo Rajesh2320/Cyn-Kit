@@ -12,11 +12,5 @@
       "dest": "$1"
     }
   ],
-  "env": {
-    "GOOGLE_APPS_SCRIPT_URL": "@google_apps_script_url"
-  },
-  "public": true,
-  "name": "cynthias-kitchen",
-  "buildCommand": "echo 'No build needed for static files'",
-  "outputDirectory": "."
+  "name": "cynthias-kitchen"
 }
