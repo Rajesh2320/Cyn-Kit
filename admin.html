@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔐 Cynthia's Kitchen - Admin Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #FF9933 0%, #fff 33%, #fff 66%, #138808 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #2C2C2A;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: auto;
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.1);
+    }
+
+    .header {
+      background: linear-gradient(135deg, #138808, #0d5c04);
+      padding: 30px 20px;
+      text-align: center;
+      color: #fff;
+    }
+
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 30px 20px;
+    }
+
+    .diagnostic-box {
+      background: #fff3cd;
+      border: 2px solid #ff9933;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+      font-family: monospace;
+    }
+
+    .diagnostic-box h3 {
+      color: #ff9933;
+      margin-bottom: 10px;
+    }
+
+    .diagnostic-line {
+      padding: 8px;
+      margin: 5px 0;
+      background: white;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .status-ok {
+      color: #138808;
+      font-weight: bold;
+    }
+
+    .status-error {
+      color: #c22;
+      font-weight: bold;
+    }
+
+    .login-section {
+      max-width: 400px;
+      margin: 60px auto;
+      padding: 40px;
+      background: #F1EFE8;
+      border-radius: 10px;
+      border-left: 4px solid #138808;
+    }
+
+    .login-section h2 {
+      color: #138808;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .login-section input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 15px;
+      font-family: inherit;
+    }
+
+    .login-section input:focus {
+      outline: none;
+      border-color: #138808;
+      box-shadow: 0 0 5px rgba(19, 136, 8, 0.3);
+    }
+
+    .login-section button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(90deg, #FF9933, #138808);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .login-section button:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(19, 136, 8, 0.3);
+    }
+
+    .error-message {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .diagnostic-box {
+        font-size: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <p>Admin Dashboard</p>
+    </div>
+
+    <div class="content">
+      <div class="diagnostic-box">
+        <h3>🔍 Diagnostic Information</h3>
+        <div id="diagnosticInfo"></div>
+      </div>
+
+      <div id="loginSection" class="login-section">
+        <h2>🔐 Admin Login</h2>
+        <p style="text-align: center; font-size: 12px; color: #999; margin: -10px 0 15px;">v<span id="versionNumber">2.2</span></p>
+        <div id="errorMessage" class="error-message"></div>
+        <input
+          type="password"
+          id="adminPassword"
+          placeholder="Enter admin password"
+          onkeypress="if(event.key==='Enter') adminLogin()"
+        >
+        <button onclick="adminLogin()">Login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load admin.js with error handling -->
+  <script>
+    // Log when script tag is encountered
+    console.log('📝 Starting to load admin.js...');
+
+    // Create a timeout to detect if admin.js doesn't load
+    let adminJsLoaded = false;
+    setTimeout(() => {
+      if (!adminJsLoaded && typeof AdminService === 'undefined') {
+        console.error('❌ admin.js failed to load within 3 seconds');
+        updateDiagnostics();
+      }
+    }, 3000);
+  </script>
+
+  <script src="admin.js" onload="handleAdminJsLoad()" onerror="handleAdminJsError()"></script>
+
+  <script>
+    const ADMIN_VERSION = "2.2";
+    const GOOGLE_APPS_SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+
+    let adminService = null;
+
+    function handleAdminJsLoad() {
+      console.log('✅ admin.js script loaded');
+      adminJsLoaded = true;
+      initializeAdminService();
+      updateDiagnostics();
+    }
+
+    function handleAdminJsError() {
+      console.error('❌ Failed to load admin.js');
+      adminJsLoaded = false;
+      updateDiagnostics();
+    }
+
+    function initializeAdminService() {
+      try {
+        if (typeof AdminService === 'undefined') {
+          throw new Error('AdminService class not found in admin.js');
+        }
+        adminService = new AdminService(GOOGLE_APPS_SCRIPT_URL);
+        console.log('✅ AdminService initialized successfully');
+        return true;
+      } catch (error) {
+        console.error('❌ Failed to initialize AdminService:', error);
+        return false;
+      }
+    }
+
+    function updateDiagnostics() {
+      const diagnosticDiv = document.getElementById('diagnosticInfo');
+      const lines = [];
+
+      // Check if admin.js loaded
+      lines.push(`
+        <div class="diagnostic-line">
+          ${typeof AdminService !== 'undefined' ? '<span class="status-ok">✅</span>' : '<span class="status-error">❌</span>'}
+          admin.js file loaded: ${typeof AdminService !== 'undefined' ? 'YES' : 'NO'}
+        </div>
+      `);
+
+      // Check if AdminService class exists
+      lines.push(`
+        <div class="diagnostic-line">
+          ${typeof AdminService === 'function' ? '<span class="status-ok">✅</span>' : '<span class="status-error">❌</span>'}
+          AdminService class exists: ${typeof AdminService === 'function' ? 'YES' : 'NO'}
+        </div>
+      `);
+
+      // Check if adminService instance exists
+      lines.push(`
+        <div class="diagnostic-line">
+          ${adminService !== null ? '<span class="status-ok">✅</span>' : '<span class="status-error">❌</span>'}
+          AdminService instance created: ${adminService !== null ? 'YES' : 'NO'}
+        </div>
+      `);
+
+      // Check Google Apps Script URL
+      lines.push(`
+        <div class="diagnostic-line">
+          ${GOOGLE_APPS_SCRIPT_URL !== "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE" ? '<span class="status-ok">✅</span>' : '<span class="status-error">❌</span>'}
+          Google Apps Script URL configured: ${GOOGLE_APPS_SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE" ? 'NO (still placeholder)' : 'YES'}
+        </div>
+      `);
+
+      // Show current URL
+      lines.push(`
+        <div class="diagnostic-line">
+          📍 Current page URL: ${window.location.href}
+        </div>
+      `);
+
+      diagnosticDiv.innerHTML = lines.join('');
+
+      // Show troubleshooting tips if there are issues
+      if (typeof AdminService === 'undefined' || adminService === null) {
+        showTroubleshootingTips();
+      }
+    }
+
+    function showTroubleshootingTips() {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.innerHTML = `
+        <strong>⚠️ Troubleshooting Steps:</strong><br>
+        1. Open browser DevTools (F12) → Console tab<br>
+        2. Check if you see any "Failed to load admin.js" errors<br>
+        3. Verify admin.js is in the <strong>same folder</strong> as admin.html<br>
+        4. Check the Network tab to see if admin.js request is successful<br>
+        5. Make sure your Google Apps Script URL is updated<br>
+        6. Try hard refresh (Ctrl+Shift+R on Windows, Cmd+Shift+R on Mac)
+      `;
+      errorEl.style.display = 'block';
+    }
+
+    function adminLogin() {
+      const errorEl = document.getElementById('errorMessage');
+
+      if (!adminService) {
+        errorEl.textContent = '❌ AdminService not initialized. Check diagnostics above.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      const password = document.getElementById('adminPassword').value;
+      if (!password) {
+        errorEl.textContent = '❌ Please enter a password';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      console.log('🔑 Attempting to verify password...');
+      adminService.verifyPassword(password)
+        .then(verified => {
+          if (verified) {
+            console.log('✅ Password verified successfully');
+            errorEl.textContent = '✅ Login successful! Redirecting...';
+            errorEl.style.display = 'block';
+            errorEl.style.background = '#d4edda';
+            errorEl.style.color = '#155724';
+            setTimeout(() => {
+              alert('✅ Login successful! In production, you would be redirected to the dashboard.');
+              console.log('Full AdminService methods available:', adminService);
+            }, 1000);
+          } else {
+            console.log('❌ Password verification failed');
+            errorEl.textContent = '❌ Incorrect password';
+            errorEl.style.display = 'block';
+          }
+        })
+        .catch(error => {
+          console.error('❌ Error during login:', error);
+          errorEl.textContent = '❌ Error: ' + error.message;
+          errorEl.style.display = 'block';
+        });
+    }
+
+    // Display version
+    document.getElementById('versionNumber').textContent = ADMIN_VERSION;
+
+    // Run diagnostics on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      console.log('📋 Page loaded - running diagnostics...');
+      setTimeout(updateDiagnostics, 500);
+    });
+  </script>
+</body>
+</html>
