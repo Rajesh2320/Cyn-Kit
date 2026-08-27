@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cynkit — Admin Dashboard</title>
+    <title>Cynkit — Admin Dashboard with Analytics</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -13,7 +14,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             background: white;
             padding: 30px;
@@ -29,32 +30,15 @@
             padding-bottom: 20px;
         }
         h1 { color: #d4622a; font-size: 26px; }
-        .header-right { display: flex; gap: 15px; align-items: center; }
-        .login-form { display: flex; gap: 10px; align-items: center; }
-        .login-form input {
-            padding: 8px 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px;
-        }
-        .login-form input:focus { outline: none; border-color: #d4622a; }
-        button {
-            padding: 8px 20px; background: #d4622a; color: white; border: none;
-            border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 14px;
-            transition: background 0.2s;
-        }
-        button:hover { background: #b34f1f; }
-        button.secondary { background: #666; }
-        button.secondary:hover { background: #555; }
-        button.danger { background: #dc3545; }
-        button.danger:hover { background: #c82333; }
-        .logout-btn { background: #dc3545; }
+        .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; }
         .logout-btn:hover { background: #c82333; }
 
-        /* TAB NAVIGATION */
+        /* TABS */
         .tabs {
             display: flex;
             gap: 20px;
             margin-bottom: 30px;
             border-bottom: 2px solid #eee;
-            padding-bottom: 0;
         }
         .tab-btn {
             padding: 12px 24px;
@@ -79,45 +63,7 @@
             display: block;
         }
 
-        /* PRODUCTS TAB */
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block; margin-bottom: 5px; font-weight: 600; color: #333;
-        }
-        .form-group input, .form-group textarea {
-            width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px;
-        }
-        .form-group input:focus, .form-group textarea:focus {
-            outline: none; border-color: #d4622a;
-        }
-        .form-row {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-        }
-        @media (max-width: 768px) {
-            .form-row { grid-template-columns: 1fr; }
-        }
-
-        /* PRODUCTS TABLE */
-        table {
-            width: 100%; border-collapse: collapse; margin-top: 20px;
-        }
-        th {
-            background: #f5f5f5; padding: 12px; text-align: left; font-weight: 600; color: #333; border-bottom: 2px solid #ddd;
-        }
-        td {
-            padding: 12px; border-bottom: 1px solid #eee;
-        }
-        tr:hover { background: #f9f9f9; }
-        .action-btn {
-            padding: 6px 12px; font-size: 12px; margin-right: 5px;
-        }
-        .btn-edit { background: #0275d8; }
-        .btn-edit:hover { background: #025aa5; }
-        .btn-delete { background: #dc3545; }
-
-        /* ORDERS ANALYTICS */
+        /* ANALYTICS CARDS */
         .analytics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -129,7 +75,6 @@
             padding: 20px;
             border-radius: 8px;
             border-left: 4px solid #d4622a;
-            text-align: center;
         }
         .analytics-card h3 {
             font-size: 12px;
@@ -138,35 +83,48 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        .analytics-card .number {
-            font-size: 36px;
+        .analytics-card .value {
+            font-size: 32px;
             font-weight: 700;
             color: #d4622a;
         }
+        .analytics-card .subtext {
+            font-size: 12px;
+            color: #999;
+            margin-top: 8px;
+        }
 
-        /* ORDERS TABLE */
-        .orders-table {
+        /* TABLES */
+        table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            font-size: 14px;
         }
-        .orders-table th {
+        th {
             background: #f5f5f5;
             padding: 12px;
             text-align: left;
             font-weight: 600;
-            font-size: 13px;
-            color: #333;
             border-bottom: 2px solid #ddd;
+            color: #333;
         }
-        .orders-table td {
+        td {
             padding: 12px;
             border-bottom: 1px solid #eee;
-            font-size: 13px;
         }
-        .orders-table tr:hover {
+        tr:hover { background: #f9f9f9; }
+
+        /* CHARTS */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 30px;
             background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
         }
+
         .status-badge {
             display: inline-block;
             padding: 4px 12px;
@@ -180,93 +138,26 @@
         .status-dispute { background: #f8d7da; color: #842029; }
         .status-cancelled { background: #e2e3e5; color: #383d41; }
 
-        /* MODALS */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal.show {
-            display: flex;
-        }
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-        }
-        .modal-header {
-            font-size: 20px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 15px;
-        }
-        .modal-body {
-            margin-bottom: 20px;
-        }
-        .modal-footer {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-        .payment-proof {
-            width: 100%;
-            max-width: 400px;
-            margin: 20px 0;
-            border-radius: 8px;
-            border: 2px solid #ddd;
-        }
-
-        /* FILTERS */
-        .filter-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .filter-btn {
-            padding: 8px 16px;
-            background: #f5f5f5;
-            border: 2px solid #ddd;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        .filter-btn.active {
-            background: #d4622a;
-            color: white;
-            border-color: #d4622a;
-        }
-
         .hidden { display: none !important; }
+        button { padding: 8px 16px; background: #d4622a; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
+        button:hover { background: #b34f1f; }
+        input { padding: 8px 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px; }
+        input:focus { outline: none; border-color: #d4622a; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- LOGIN SCREEN -->
+        <!-- LOGIN -->
         <div id="loginView">
             <div class="header">
                 <h1>🍰 Cynthia's Kitchen — Admin</h1>
             </div>
             <div style="max-width: 400px; margin: 60px auto; text-align: center;">
                 <h2 style="color: #333; margin-bottom: 30px;">Admin Login</h2>
-                <div class="form-group">
+                <div style="margin-bottom: 15px;">
                     <input type="email" id="adminEmail" placeholder="Email" autocomplete="email">
                 </div>
-                <div class="form-group">
+                <div style="margin-bottom: 15px;">
                     <input type="password" id="adminPassword" placeholder="Password" autocomplete="current-password">
                 </div>
                 <button onclick="loginAdmin()" style="width: 100%; padding: 12px;">Login</button>
@@ -277,67 +168,191 @@
         <div id="dashboardView" class="hidden">
             <div class="header">
                 <h1>🍰 Cynthia's Kitchen — Admin Dashboard</h1>
-                <div class="header-right">
+                <div style="display: flex; gap: 15px; align-items: center;">
                     <span id="adminName" style="color: #666; font-weight: 600;"></span>
                     <button class="logout-btn" onclick="logout()">Logout</button>
                 </div>
             </div>
 
-            <!-- TAB NAVIGATION -->
+            <!-- TABS -->
             <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('products')">📦 Products</button>
+                <button class="tab-btn active" onclick="switchTab('analytics')">📊 Analytics</button>
                 <button class="tab-btn" onclick="switchTab('orders')">📋 Orders</button>
+                <button class="tab-btn" onclick="switchTab('products')">📦 Products</button>
             </div>
 
-            <!-- PRODUCTS TAB -->
-            <div id="products" class="tab-content active">
-                <h2 style="color: #333; margin-bottom: 20px;">Manage Products</h2>
+            <!-- ANALYTICS TAB -->
+            <div id="analytics" class="tab-content active">
+                <h2 style="color: #333; margin-bottom: 20px;">Dashboard Analytics</h2>
 
-                <!-- ADD/EDIT FORM -->
-                <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-                    <h3 style="color: #333; margin-bottom: 20px;">Add New Product</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Product ID (unique key)</label>
-                            <input type="text" id="productId" placeholder="e.g., cake-ninja-plum">
-                        </div>
-                        <div class="form-group">
-                            <label>Product Name</label>
-                            <input type="text" id="productName" placeholder="e.g., The Ninja Plum Cake">
-                        </div>
+                <!-- KEY METRICS -->
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h3>💰 Total Revenue</h3>
+                        <div class="value" id="totalRevenue">₹0</div>
+                        <div class="subtext">Paid orders only</div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Category</label>
-                            <input type="text" id="productCategory" placeholder="e.g., Cakes">
-                        </div>
-                        <div class="form-group">
-                            <label>Unit (e.g., 250g, 3 idlis)</label>
-                            <input type="text" id="productUnit" placeholder="e.g., 250g">
-                        </div>
+                    <div class="analytics-card">
+                        <h3>⏳ Outstanding Amount</h3>
+                        <div class="value" id="outstandingAmount">₹0</div>
+                        <div class="subtext">Unpaid + disputed</div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Price (₹)</label>
-                            <input type="number" id="productPrice" placeholder="500" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label>Image URL</label>
-                            <input type="url" id="productImage" placeholder="https://example.com/image.jpg">
-                        </div>
+                    <div class="analytics-card">
+                        <h3>📊 Avg Order Value</h3>
+                        <div class="value" id="avgOrderValue">₹0</div>
+                        <div class="subtext">All orders</div>
                     </div>
-                    <div class="form-group">
-                        <label>Description</label>
-                        <textarea id="productDescription" placeholder="Optional product description" rows="3"></textarea>
+                    <div class="analytics-card">
+                        <h3>✅ Completion Rate</h3>
+                        <div class="value" id="completionRate">0%</div>
+                        <div class="subtext">Paid orders</div>
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button onclick="addProduct()">Add Product</button>
-                        <button class="secondary" onclick="clearForm()">Clear</button>
+                    <div class="analytics-card">
+                        <h3>❌ Cancellation Rate</h3>
+                        <div class="value" id="cancellationRate">0%</div>
+                        <div class="subtext">Cancelled orders</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>⚠️ Dispute Rate</h3>
+                        <div class="value" id="disputeRate">0%</div>
+                        <div class="subtext">Disputed orders</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>👥 Unique Customers</h3>
+                        <div class="value" id="uniqueCustomers">0</div>
+                        <div class="subtext">Total customers</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>🔄 Repeat Customers</h3>
+                        <div class="value" id="repeatCustomers">0</div>
+                        <div class="subtext">2+ orders</div>
                     </div>
                 </div>
 
-                <!-- PRODUCTS TABLE -->
-                <table class="products-table">
+                <!-- CHARTS ROW 1 -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                    <div class="chart-container">
+                        <h3 style="margin-bottom: 15px;">📊 Order Status Breakdown</h3>
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="margin-bottom: 15px;">🚚 Delivery vs Pickup</h3>
+                        <canvas id="deliveryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- CHARTS ROW 2 -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                    <div class="chart-container">
+                        <h3 style="margin-bottom: 15px;">📈 7-Day Revenue Trend</h3>
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="margin-bottom: 15px;">📦 Top 5 Products</h3>
+                        <canvas id="productsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- TABLES -->
+                <h3 style="color: #333; margin-top: 30px; margin-bottom: 15px;">👥 Top 10 Customers (Month)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Customer Name</th>
+                            <th>Phone</th>
+                            <th>Orders</th>
+                            <th>Total Items</th>
+                            <th>Total Amount (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topCustomersTable">
+                    </tbody>
+                </table>
+
+                <h3 style="color: #333; margin-top: 30px; margin-bottom: 15px;">📅 Past 7 Days Summary</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Total Orders</th>
+                            <th>Total Amount (₹)</th>
+                            <th>Paid Orders</th>
+                            <th>Paid Amount (₹)</th>
+                            <th>Unpaid Orders</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dailySummaryTable">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ORDERS TAB -->
+            <div id="orders" class="tab-content">
+                <h2 style="color: #333; margin-bottom: 20px;">Orders Management</h2>
+                <div style="margin-bottom: 20px;">
+                    <input type="text" id="orderSearch" placeholder="🔍 Search by name or phone..." style="width: 100%; max-width: 400px;">
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Phone</th>
+                            <th>Total (₹)</th>
+                            <th>Status</th>
+                            <th>Delivery</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTable">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PRODUCTS TAB -->
+            <div id="products" class="tab-content">
+                <h2 style="color: #333; margin-bottom: 20px;">Manage Products</h2>
+                <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                    <h3 style="color: #333; margin-bottom: 20px;">Add New Product</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Product ID</label>
+                            <input type="text" id="productId" placeholder="e.g., cake-ninja-plum">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Product Name</label>
+                            <input type="text" id="productName" placeholder="e.g., The Ninja Plum Cake">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Category</label>
+                            <input type="text" id="productCategory" placeholder="e.g., Cakes">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Unit</label>
+                            <input type="text" id="productUnit" placeholder="e.g., 250g">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Price (₹)</label>
+                            <input type="number" id="productPrice" placeholder="500">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Image URL</label>
+                            <input type="url" id="productImage" placeholder="https://example.com/image.jpg">
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="addProduct()">Add Product</button>
+                        <button onclick="clearForm()" style="background: #666;">Clear</button>
+                    </div>
+                </div>
+
+                <table>
                     <thead>
                         <tr>
                             <th>Image</th>
@@ -349,137 +364,9 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="productsTableBody">
+                    <tbody id="productsTable">
                     </tbody>
                 </table>
-            </div>
-
-            <!-- ORDERS TAB -->
-            <div id="orders" class="tab-content">
-                <h2 style="color: #333; margin-bottom: 20px;">Orders Management</h2>
-
-                <!-- ANALYTICS -->
-                <div class="analytics-grid">
-                    <div class="analytics-card">
-                        <h3>Total Orders</h3>
-                        <div class="number" id="analyticsTotal">0</div>
-                    </div>
-                    <div class="analytics-card">
-                        <h3>Pending Payment</h3>
-                        <div class="number" id="analyticsPending" style="color: #ffc107;">0</div>
-                    </div>
-                    <div class="analytics-card">
-                        <h3>Proof Submitted</h3>
-                        <div class="number" id="analyticsProof" style="color: #0275d8;">0</div>
-                    </div>
-                    <div class="analytics-card">
-                        <h3>Paid</h3>
-                        <div class="number" id="analyticsPaid" style="color: #28a745;">0</div>
-                    </div>
-                    <div class="analytics-card">
-                        <h3>Disputes</h3>
-                        <div class="number" id="analyticsDispute" style="color: #dc3545;">0</div>
-                    </div>
-                    <div class="analytics-card">
-                        <h3>Cancelled</h3>
-                        <div class="number" id="analyticsCancelled" style="color: #6c757d;">0</div>
-                    </div>
-                </div>
-
-                <!-- FILTER -->
-                <div class="filter-bar">
-                    <button class="filter-btn active" onclick="filterOrders('all')">All</button>
-                    <button class="filter-btn" onclick="filterOrders('pending_payment')">Pending Payment</button>
-                    <button class="filter-btn" onclick="filterOrders('payment_proof_submitted')">Proof Submitted</button>
-                    <button class="filter-btn" onclick="filterOrders('paid')">Paid</button>
-                    <button class="filter-btn" onclick="filterOrders('dispute')">Disputes</button>
-                    <button class="filter-btn" onclick="filterOrders('cancelled')">Cancelled</button>
-                </div>
-
-                <!-- ORDERS TABLE -->
-                <table class="orders-table">
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Customer</th>
-                            <th>Phone</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th>Delivery Type</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersTableBody">
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- ORDER DETAILS MODAL -->
-    <div id="orderModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">Order Details</div>
-            <div class="modal-body">
-                <div style="margin-bottom: 20px;">
-                    <strong>Order ID:</strong> <span id="modalOrderId"></span><br>
-                    <strong>Customer:</strong> <span id="modalCustomerName"></span><br>
-                    <strong>Phone:</strong> <span id="modalCustomerPhone"></span><br>
-                    <strong>Email:</strong> <span id="modalCustomerEmail"></span><br>
-                    <strong>Delivery Type:</strong> <span id="modalDeliveryType"></span><br>
-                    <strong>Address:</strong> <span id="modalAddress"></span><br>
-                    <strong>Order Date:</strong> <span id="modalOrderDate"></span><br>
-                    <strong>Total:</strong> <span id="modalTotal" style="font-weight: 700; color: #d4622a;"></span>
-                </div>
-
-                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <strong style="display: block; margin-bottom: 10px;">Items:</strong>
-                    <div id="modalItems"></div>
-                </div>
-
-                <div id="paymentProofSection" style="display: none; border-top: 2px solid #eee; padding-top: 20px; margin-top: 20px;">
-                    <strong style="display: block; margin-bottom: 10px;">Payment Proof:</strong>
-                    <img id="paymentProofImage" class="payment-proof" style="display: none;">
-                    <span id="noProofMessage" style="color: #666;">No payment proof uploaded yet</span>
-                </div>
-
-                <div style="border-top: 2px solid #eee; padding-top: 20px; margin-top: 20px;">
-                    <strong style="display: block; margin-bottom: 15px;">Update Status:</strong>
-                    
-                    <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                        <button class="secondary" style="padding: 8px 16px;" onclick="markAsPaid()">✓ Mark as Paid</button>
-                        <button style="background: #ffc107; color: #333; padding: 8px 16px;" onclick="showDisputeForm()">⚠️ Dispute</button>
-                        <button class="danger" style="padding: 8px 16px;" onclick="showCancelForm()">✕ Cancel</button>
-                    </div>
-
-                    <div id="disputeForm" style="display: none; background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 15px;">
-                        <label style="font-weight: 600; display: block; margin-bottom: 10px;">Dispute Reason (max 80 characters):</label>
-                        <textarea id="disputeReason" maxlength="80" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; resize: none;" rows="3" placeholder="Explain the dispute..."></textarea>
-                        <div style="margin-top: 10px; font-size: 12px; color: #666;">
-                            <span id="disputeCharCount">0</span>/80
-                        </div>
-                        <div style="margin-top: 10px; display: flex; gap: 10px;">
-                            <button onclick="submitDispute()">Submit Dispute</button>
-                            <button class="secondary" onclick="hideDisputeForm()">Cancel</button>
-                        </div>
-                    </div>
-
-                    <div id="cancelForm" style="display: none; background: #e2e3e5; padding: 15px; border-radius: 8px; margin-top: 15px;">
-                        <label style="font-weight: 600; display: block; margin-bottom: 10px;">Cancellation Reason (max 80 characters):</label>
-                        <textarea id="cancellationReason" maxlength="80" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; resize: none;" rows="3" placeholder="Explain why cancelling..."></textarea>
-                        <div style="margin-top: 10px; font-size: 12px; color: #666;">
-                            <span id="cancelCharCount">0</span>/80
-                        </div>
-                        <div style="margin-top: 10px; display: flex; gap: 10px;">
-                            <button class="danger" onclick="submitCancellation()">Confirm Cancellation</button>
-                            <button class="secondary" onclick="hideCancelForm()">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="secondary" onclick="closeOrderModal()">Close</button>
             </div>
         </div>
     </div>
@@ -489,7 +376,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <script>
-        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyD5YQFMqDtSkoOCyAtCwW7DTxk9l7e7umQ",
             authDomain: "cynkit-8e6aa.firebaseapp.com",
@@ -505,9 +391,9 @@
         const ADMIN_UID = '2zviW2Kb3cQJ667hFinAU928HDk1';
 
         let currentUser = null;
-        let currentOrderId = null;
         let allOrders = [];
-        let filteredStatus = 'all';
+        let allProducts = [];
+        let statusChart, deliveryChart, revenueChart, productsChart;
 
         // ============ AUTHENTICATION ============
         function loginAdmin() {
@@ -546,8 +432,7 @@
             document.getElementById('loginView').classList.add('hidden');
             document.getElementById('dashboardView').classList.remove('hidden');
             document.getElementById('adminName').textContent = currentUser.email;
-            loadProducts();
-            loadOrders();
+            loadData();
         }
 
         // ============ TAB SWITCHING ============
@@ -555,34 +440,311 @@
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(tab).classList.add('active');
-            event.target.classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if ((tab === 'analytics' && btn.textContent.includes('Analytics')) ||
+                    (tab === 'orders' && btn.textContent.includes('Orders')) ||
+                    (tab === 'products' && btn.textContent.includes('Products'))) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // ============ LOAD DATA ============
+        function loadData() {
+            loadOrders();
+            loadProducts();
+        }
+
+        function loadOrders() {
+            db.collection('orders').orderBy('timestamp', 'desc').get()
+                .then(snapshot => {
+                    allOrders = [];
+                    snapshot.forEach(doc => {
+                        allOrders.push({ id: doc.id, ...doc.data() });
+                    });
+                    console.log('Loaded', allOrders.length, 'orders');
+                    updateAnalytics();
+                    populateOrdersTable();
+                })
+                .catch(err => {
+                    console.error('Error loading orders:', err);
+                    alert('Error loading orders: ' + err.message);
+                });
+        }
+
+        function loadProducts() {
+            db.collection('products').get()
+                .then(snapshot => {
+                    allProducts = [];
+                    snapshot.forEach(doc => {
+                        allProducts.push({ id: doc.id, ...doc.data() });
+                    });
+                    populateProductsTable();
+                });
+        }
+
+        // ============ ANALYTICS ============
+        function updateAnalytics() {
+            // Revenue calculations
+            const paidOrders = allOrders.filter(o => o.status === 'paid');
+            const unpaidOrders = allOrders.filter(o => o.status !== 'paid' && o.status !== 'cancelled');
+            const completedOrders = paidOrders.length;
+            const cancelledOrders = allOrders.filter(o => o.status === 'cancelled').length;
+            const disputeOrders = allOrders.filter(o => o.status === 'dispute').length;
+
+            const totalRevenue = paidOrders.reduce((sum, o) => sum + (o.orderTotal || 0), 0);
+            const outstandingAmount = unpaidOrders.reduce((sum, o) => sum + (o.orderTotal || 0), 0);
+            const avgOrderValue = allOrders.length > 0 ? Math.round(allOrders.reduce((sum, o) => sum + (o.orderTotal || 0), 0) / allOrders.length) : 0;
+            
+            const completionRate = allOrders.length > 0 ? ((completedOrders / allOrders.length) * 100).toFixed(1) : 0;
+            const cancellationRate = allOrders.length > 0 ? ((cancelledOrders / allOrders.length) * 100).toFixed(1) : 0;
+            const disputeRate = allOrders.length > 0 ? ((disputeOrders / allOrders.length) * 100).toFixed(1) : 0;
+
+            // Unique customers
+            const uniqueCustomers = new Set(allOrders.map(o => o.customerPhone)).size;
+            const customerOrders = {};
+            allOrders.forEach(o => {
+                const phone = o.customerPhone;
+                if (!customerOrders[phone]) customerOrders[phone] = 0;
+                customerOrders[phone]++;
+            });
+            const repeatCustomers = Object.values(customerOrders).filter(count => count >= 2).length;
+
+            // Update cards
+            document.getElementById('totalRevenue').textContent = '₹' + totalRevenue;
+            document.getElementById('outstandingAmount').textContent = '₹' + outstandingAmount;
+            document.getElementById('avgOrderValue').textContent = '₹' + avgOrderValue;
+            document.getElementById('completionRate').textContent = completionRate + '%';
+            document.getElementById('cancellationRate').textContent = cancellationRate + '%';
+            document.getElementById('disputeRate').textContent = disputeRate + '%';
+            document.getElementById('uniqueCustomers').textContent = uniqueCustomers;
+            document.getElementById('repeatCustomers').textContent = repeatCustomers;
+
+            // Top customers
+            const customers = {};
+            allOrders.forEach(order => {
+                if (!customers[order.customerPhone]) {
+                    customers[order.customerPhone] = {
+                        name: order.customerName,
+                        phone: order.customerPhone,
+                        orders: 0,
+                        items: 0,
+                        amount: 0
+                    };
+                }
+                customers[order.customerPhone].orders++;
+                customers[order.customerPhone].items += order.lineItems ? order.lineItems.length : 0;
+                customers[order.customerPhone].amount += order.orderTotal || 0;
+            });
+
+            const topCustomers = Object.values(customers)
+                .sort((a, b) => b.amount - a.amount)
+                .slice(0, 10);
+
+            const topCustomersHtml = topCustomers.map((c, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${c.name}</td>
+                    <td>${c.phone}</td>
+                    <td>${c.orders}</td>
+                    <td>${c.items}</td>
+                    <td>₹${c.amount}</td>
+                </tr>
+            `).join('');
+            document.getElementById('topCustomersTable').innerHTML = topCustomersHtml;
+
+            // Daily summary
+            const dailyData = {};
+            const today = new Date();
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toLocaleDateString('en-IN');
+                dailyData[dateStr] = { orders: 0, amount: 0, paid: 0, paidAmount: 0, unpaid: 0 };
+            }
+
+            allOrders.forEach(order => {
+                if (order.timestamp) {
+                    const orderDate = new Date(order.timestamp.toDate()).toLocaleDateString('en-IN');
+                    if (dailyData[orderDate]) {
+                        dailyData[orderDate].orders++;
+                        dailyData[orderDate].amount += order.orderTotal || 0;
+                        if (order.status === 'paid') {
+                            dailyData[orderDate].paid++;
+                            dailyData[orderDate].paidAmount += order.orderTotal || 0;
+                        } else {
+                            dailyData[orderDate].unpaid++;
+                        }
+                    }
+                }
+            });
+
+            const dailyHtml = Object.entries(dailyData).map(([date, data]) => `
+                <tr>
+                    <td>${date}</td>
+                    <td>${data.orders}</td>
+                    <td>₹${data.amount}</td>
+                    <td>${data.paid}</td>
+                    <td>₹${data.paidAmount}</td>
+                    <td>${data.unpaid}</td>
+                </tr>
+            `).join('');
+            document.getElementById('dailySummaryTable').innerHTML = dailyHtml;
+
+            // Charts
+            drawCharts();
+        }
+
+        function drawCharts() {
+            const statuses = {
+                'pending_payment': allOrders.filter(o => o.status === 'pending_payment').length,
+                'payment_proof_submitted': allOrders.filter(o => o.status === 'payment_proof_submitted' || o.status === 'payment_submitted').length,
+                'paid': allOrders.filter(o => o.status === 'paid').length,
+                'dispute': allOrders.filter(o => o.status === 'dispute').length,
+                'cancelled': allOrders.filter(o => o.status === 'cancelled').length,
+            };
+
+            if (statusChart) statusChart.destroy();
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            statusChart = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending Payment', 'Proof Submitted', 'Paid', 'Dispute', 'Cancelled'],
+                    datasets: [{
+                        data: Object.values(statuses),
+                        backgroundColor: ['#ffc107', '#0275d8', '#28a745', '#dc3545', '#6c757d']
+                    }]
+                }
+            });
+
+            const delivery = {
+                pickup: allOrders.filter(o => o.deliveryType === 'pickup').length,
+                delivery: allOrders.filter(o => o.deliveryType === 'delivery').length,
+            };
+
+            if (deliveryChart) deliveryChart.destroy();
+            const deliveryCtx = document.getElementById('deliveryChart').getContext('2d');
+            deliveryChart = new Chart(deliveryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pickup', 'Delivery'],
+                    datasets: [{
+                        data: [delivery.pickup, delivery.delivery],
+                        backgroundColor: ['#ff9a56', '#d4622a']
+                    }]
+                }
+            });
+
+            // Revenue trend
+            const today = new Date();
+            const labels = [];
+            const revenues = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                labels.push(date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }));
+                const dateStr = date.toLocaleDateString('en-IN');
+                const dayRevenue = allOrders
+                    .filter(o => {
+                        if (!o.timestamp) return false;
+                        const orderDate = new Date(o.timestamp.toDate()).toLocaleDateString('en-IN');
+                        return orderDate === dateStr && o.status === 'paid';
+                    })
+                    .reduce((sum, o) => sum + (o.orderTotal || 0), 0);
+                revenues.push(dayRevenue);
+            }
+
+            if (revenueChart) revenueChart.destroy();
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            revenueChart = new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Revenue (₹)',
+                        data: revenues,
+                        borderColor: '#d4622a',
+                        backgroundColor: 'rgba(212, 98, 42, 0.1)',
+                        tension: 0.4
+                    }]
+                }
+            });
+
+            // Top products
+            const productCounts = {};
+            allOrders.forEach(order => {
+                if (order.lineItems) {
+                    order.lineItems.forEach(item => {
+                        productCounts[item.name] = (productCounts[item.name] || 0) + item.quantity;
+                    });
+                }
+            });
+
+            const topProducts = Object.entries(productCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            if (productsChart) productsChart.destroy();
+            const productsCtx = document.getElementById('productsChart').getContext('2d');
+            productsChart = new Chart(productsCtx, {
+                type: 'bar',
+                data: {
+                    labels: topProducts.map(p => p[0]),
+                    datasets: [{
+                        label: 'Items Sold',
+                        data: topProducts.map(p => p[1]),
+                        backgroundColor: '#d4622a'
+                    }]
+                }
+            });
+        }
+
+        // ============ ORDERS TABLE ============
+        function populateOrdersTable() {
+            const tbody = document.getElementById('ordersTable');
+            tbody.innerHTML = allOrders.map(order => `
+                <tr>
+                    <td><strong>${order.orderId}</strong></td>
+                    <td>${order.customerName}</td>
+                    <td>${order.customerPhone}</td>
+                    <td>₹${order.orderTotal}</td>
+                    <td><span class="status-badge status-${order.status}">${order.status.replace(/_/g, ' ').toUpperCase()}</span></td>
+                    <td>${order.deliveryType === 'pickup' ? '🏪 Pickup' : '🚚 Delivery'}</td>
+                    <td>${order.timestamp ? new Date(order.timestamp.toDate()).toLocaleDateString() : '-'}</td>
+                    <td><button onclick="viewOrder('${order.id}')">View</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function viewOrder(docId) {
+            alert('Order details modal - to be implemented');
         }
 
         // ============ PRODUCTS ============
         function loadProducts() {
             db.collection('products').get()
                 .then(snapshot => {
-                    const tbody = document.getElementById('productsTableBody');
-                    tbody.innerHTML = '';
+                    allProducts = [];
                     snapshot.forEach(doc => {
-                        const product = doc.data();
-                        const row = `
-                            <tr>
-                                <td><img src="${product.imageUrl || ''}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;" onerror="this.style.display='none'"></td>
-                                <td>${product.name}</td>
-                                <td>${product.category}</td>
-                                <td>${product.unit}</td>
-                                <td>₹${product.price}</td>
-                                <td>${product.active !== false ? '✓ Active' : '✕ Inactive'}</td>
-                                <td>
-                                    <button class="action-btn btn-edit" onclick="editProduct('${doc.id}')">Edit</button>
-                                    <button class="action-btn btn-delete" onclick="deleteProduct('${doc.id}')">Delete</button>
-                                </td>
-                            </tr>
-                        `;
-                        tbody.innerHTML += row;
+                        allProducts.push({ id: doc.id, ...doc.data() });
                     });
+                    populateProductsTable();
                 });
+        }
+
+        function populateProductsTable() {
+            const tbody = document.getElementById('productsTable');
+            tbody.innerHTML = allProducts.map(p => `
+                <tr>
+                    <td><img src="${p.imageUrl || ''}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;" onerror="this.style.display='none'"></td>
+                    <td>${p.name}</td>
+                    <td>${p.category}</td>
+                    <td>${p.unit}</td>
+                    <td>₹${p.price}</td>
+                    <td>${p.active !== false ? '✓ Active' : '✕ Inactive'}</td>
+                    <td><button onclick="deleteProduct('${p.id}')">Delete</button></td>
+                </tr>
+            `).join('');
         }
 
         function addProduct() {
@@ -592,32 +754,27 @@
             const unit = document.getElementById('productUnit').value.trim();
             const price = parseFloat(document.getElementById('productPrice').value);
             const imageUrl = document.getElementById('productImage').value.trim();
-            const description = document.getElementById('productDescription').value.trim();
 
             if (!id || !name || !category || !unit || !price) {
-                alert('Please fill in all required fields');
+                alert('Please fill all required fields');
                 return;
             }
 
             db.collection('products').doc(id).set({
-                name, category, unit, price, imageUrl, description, active: true
-            })
-            .then(() => {
+                name, category, unit, price, imageUrl, active: true
+            }).then(() => {
                 alert('✓ Product added!');
                 clearForm();
                 loadProducts();
-            })
-            .catch(err => alert('Error: ' + err.message));
+            });
         }
 
         function deleteProduct(id) {
             if (!confirm('Delete this product?')) return;
-            db.collection('products').doc(id).delete()
-                .then(() => {
-                    alert('✓ Product deleted!');
-                    loadProducts();
-                })
-                .catch(err => alert('Error: ' + err.message));
+            db.collection('products').doc(id).delete().then(() => {
+                alert('✓ Deleted!');
+                loadProducts();
+            });
         }
 
         function clearForm() {
@@ -627,193 +784,9 @@
             document.getElementById('productUnit').value = '';
             document.getElementById('productPrice').value = '';
             document.getElementById('productImage').value = '';
-            document.getElementById('productDescription').value = '';
         }
 
-        // ============ ORDERS ============
-        function loadOrders() {
-            db.collection('orders').orderBy('timestamp', 'desc').get()
-                .then(snapshot => {
-                    allOrders = [];
-                    snapshot.forEach(doc => {
-                        allOrders.push({ id: doc.id, ...doc.data() });
-                    });
-                    updateAnalytics();
-                    filterOrders('all');
-                })
-                .catch(err => console.error('Error loading orders:', err));
-        }
-
-        function updateAnalytics() {
-            const stats = {
-                total: allOrders.length,
-                pending_payment: allOrders.filter(o => o.status === 'pending_payment').length,
-                payment_proof_submitted: allOrders.filter(o => o.status === 'payment_proof_submitted').length,
-                paid: allOrders.filter(o => o.status === 'paid').length,
-                dispute: allOrders.filter(o => o.status === 'dispute').length,
-                cancelled: allOrders.filter(o => o.status === 'cancelled').length,
-            };
-
-            document.getElementById('analyticsTotal').textContent = stats.total;
-            document.getElementById('analyticsPending').textContent = stats.pending_payment;
-            document.getElementById('analyticsProof').textContent = stats.payment_proof_submitted;
-            document.getElementById('analyticsPaid').textContent = stats.paid;
-            document.getElementById('analyticsDispute').textContent = stats.dispute;
-            document.getElementById('analyticsCancelled').textContent = stats.cancelled;
-        }
-
-        function filterOrders(status) {
-            filteredStatus = status;
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            let orders = status === 'all' ? allOrders : allOrders.filter(o => o.status === status);
-            const tbody = document.getElementById('ordersTableBody');
-            tbody.innerHTML = '';
-
-            orders.forEach(order => {
-                const date = order.timestamp ? new Date(order.timestamp.toDate()).toLocaleDateString() : '-';
-                const row = `
-                    <tr>
-                        <td><strong>${order.orderId}</strong></td>
-                        <td>${order.customerName}</td>
-                        <td>${order.customerPhone}</td>
-                        <td>₹${order.orderTotal}</td>
-                        <td><span class="status-badge status-${order.status}">${order.status.replace(/_/g, ' ').toUpperCase()}</span></td>
-                        <td>${order.deliveryType === 'pickup' ? '🏪 Pickup' : '🚚 Delivery'}</td>
-                        <td>${date}</td>
-                        <td><button class="action-btn btn-edit" onclick="viewOrder('${order.id}')">View</button></td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-        }
-
-        function viewOrder(docId) {
-            const order = allOrders.find(o => o.id === docId);
-            if (!order) return;
-
-            currentOrderId = docId;
-            document.getElementById('modalOrderId').textContent = order.orderId;
-            document.getElementById('modalCustomerName').textContent = order.customerName;
-            document.getElementById('modalCustomerPhone').textContent = order.customerPhone;
-            document.getElementById('modalCustomerEmail').textContent = order.customerEmail;
-            document.getElementById('modalDeliveryType').textContent = order.deliveryType === 'pickup' ? '🏪 Pickup' : '🚚 Delivery';
-            document.getElementById('modalAddress').textContent = order.deliveryAddress || '-';
-            document.getElementById('modalOrderDate').textContent = order.timestamp ? new Date(order.timestamp.toDate()).toLocaleString() : '-';
-            document.getElementById('modalTotal').textContent = '₹' + order.orderTotal;
-
-            // Items
-            const itemsHtml = order.lineItems.map(item => `
-                <div style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                    ${item.name} × ${item.quantity} @ ₹${item.unitPrice} = <strong>₹${item.lineTotal}</strong>
-                </div>
-            `).join('');
-            document.getElementById('modalItems').innerHTML = itemsHtml;
-
-            // Payment Proof
-            if (order.proofBase64) {
-                document.getElementById('paymentProofSection').style.display = 'block';
-                document.getElementById('paymentProofImage').src = order.proofBase64;
-                document.getElementById('paymentProofImage').style.display = 'block';
-                document.getElementById('noProofMessage').style.display = 'none';
-            } else {
-                document.getElementById('paymentProofSection').style.display = order.status === 'pending_payment' ? 'none' : 'block';
-                document.getElementById('paymentProofImage').style.display = 'none';
-                document.getElementById('noProofMessage').style.display = 'block';
-            }
-
-            // Hide forms
-            hideDisputeForm();
-            hideCancelForm();
-
-            document.getElementById('orderModal').classList.add('show');
-        }
-
-        function closeOrderModal() {
-            document.getElementById('orderModal').classList.remove('show');
-            currentOrderId = null;
-        }
-
-        function markAsPaid() {
-            if (!currentOrderId) return;
-            db.collection('orders').doc(currentOrderId).update({ status: 'paid' })
-                .then(() => {
-                    alert('✓ Order marked as paid');
-                    closeOrderModal();
-                    loadOrders();
-                })
-                .catch(err => alert('Error: ' + err.message));
-        }
-
-        function showDisputeForm() {
-            document.getElementById('disputeForm').style.display = 'block';
-            document.getElementById('cancelForm').style.display = 'none';
-        }
-
-        function hideDisputeForm() {
-            document.getElementById('disputeForm').style.display = 'none';
-            document.getElementById('disputeReason').value = '';
-            document.getElementById('disputeCharCount').textContent = '0';
-        }
-
-        function showCancelForm() {
-            document.getElementById('cancelForm').style.display = 'block';
-            document.getElementById('disputeForm').style.display = 'none';
-        }
-
-        function hideCancelForm() {
-            document.getElementById('cancelForm').style.display = 'none';
-            document.getElementById('cancellationReason').value = '';
-            document.getElementById('cancelCharCount').textContent = '0';
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('disputeReason').addEventListener('input', (e) => {
-                document.getElementById('disputeCharCount').textContent = e.target.value.length;
-            });
-            document.getElementById('cancellationReason').addEventListener('input', (e) => {
-                document.getElementById('cancelCharCount').textContent = e.target.value.length;
-            });
-        });
-
-        function submitDispute() {
-            const reason = document.getElementById('disputeReason').value.trim();
-            if (!reason) {
-                alert('Please enter dispute reason');
-                return;
-            }
-            db.collection('orders').doc(currentOrderId).update({
-                status: 'dispute',
-                disputeReason: reason
-            })
-            .then(() => {
-                alert('✓ Dispute recorded');
-                closeOrderModal();
-                loadOrders();
-            })
-            .catch(err => alert('Error: ' + err.message));
-        }
-
-        function submitCancellation() {
-            const reason = document.getElementById('cancellationReason').value.trim();
-            if (!reason) {
-                alert('Please enter cancellation reason');
-                return;
-            }
-            db.collection('orders').doc(currentOrderId).update({
-                status: 'cancelled',
-                cancellationReason: reason
-            })
-            .then(() => {
-                alert('✓ Order cancelled');
-                closeOrderModal();
-                loadOrders();
-            })
-            .catch(err => alert('Error: ' + err.message));
-        }
-
-        // Auto-load on page load if already logged in
+        // Auto-login if already authenticated
         auth.onAuthStateChanged(user => {
             if (user && user.uid === ADMIN_UID) {
                 currentUser = user;
