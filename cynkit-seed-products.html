@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seed Products — Cynkit</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f4f4f7;
+            padding: 30px;
+            color: #222;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 { font-size: 22px; margin-bottom: 8px; }
+        .subtitle { color: #666; margin-bottom: 25px; font-size: 14px; }
+        .warning {
+            background: #fff3cd; border: 2px solid #ffc107; color: #856404;
+            padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 14px;
+        }
+        .login-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        input {
+            padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px; flex: 1;
+        }
+        button {
+            padding: 10px 20px; background: #28a745; color: white; border: none;
+            border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px;
+        }
+        button:hover { background: #218838; }
+        .error-text { color: #dc3545; margin-top: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th { background: #f5f5f5; padding: 8px; text-align: left; border-bottom: 2px solid #ddd; }
+        td { padding: 8px; border-bottom: 1px solid #eee; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-failed { background: #f8d7da; color: #721c24; }
+        #loginSection.hidden, #toolSection.hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌱 Seed Initial Products — Cynkit</h1>
+        <p class="subtitle">
+            One-time tool: creates the 12 starting catalog items (3 cakes + 9 tiffin
+            items) in the new <code>products</code> collection. Safe to run more than
+            once — it overwrites the same 12 items rather than creating duplicates.
+        </p>
+        <div class="warning">
+            ⚠️ One-time utility, not part of the regular site. Run it once, confirm
+            in Firebase Console, then delete this file from your repo.
+        </div>
+
+        <div id="loginSection">
+            <div class="login-row">
+                <input type="email" id="emailInput" placeholder="Admin Email" autocomplete="username">
+                <input type="password" id="passwordInput" placeholder="Admin Password" autocomplete="current-password">
+                <button onclick="login()">Login</button>
+            </div>
+            <div id="loginError" class="error-text"></div>
+        </div>
+
+        <div id="toolSection" class="hidden">
+            <button onclick="seedProducts()">🌱 Seed 12 Products</button>
+            <div id="results" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5YQFMqDtSkoOCyAtCwW7DTxk9l7e7umQ",
+            authDomain: "cynkit.firebaseapp.com",
+            projectId: "cynkit",
+            storageBucket: "cynkit.firebasestorage.app",
+            messagingSenderId: "830918868359",
+            appId: "1:830918868359:web:7288ec552409c0d4236722"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        auth.onAuthStateChanged(user => {
+            document.getElementById('loginSection').classList.toggle('hidden', !!user);
+            document.getElementById('toolSection').classList.toggle('hidden', !user);
+        });
+
+        function login() {
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            document.getElementById('loginError').textContent = '';
+
+            auth.signInWithEmailAndPassword(email, password)
+                .catch(err => {
+                    document.getElementById('loginError').textContent = 'Login failed: ' + err.message;
+                });
+        }
+
+        // Fixed, deterministic doc IDs — running this twice overwrites
+        // the same 12 documents rather than creating duplicates.
+        const PRODUCTS = [
+            {
+                id: 'cake-ninja-plum',
+                category: 'cakes',
+                name: 'The Ninja Plum Cake',
+                description: 'Sneaky, swift, and absolutely deadly delicious! Perfect for solo missions or secret snacking! 🥷',
+                unitLabel: '250g',
+                price: 500,
+                sortOrder: 1,
+                active: true
+            },
+            {
+                id: 'cake-just-right-plum',
+                category: 'cakes',
+                name: 'The Just Right Plum Cake',
+                description: 'Not too small, not too large, JUUUST right. Your taste buds will write poetry! ✨',
+                unitLabel: '500g',
+                price: 750,
+                sortOrder: 2,
+                active: true
+            },
+            {
+                id: 'cake-big-boss-plum',
+                category: 'cakes',
+                name: 'The Big Boss Plum Cake',
+                description: "The 'party's at my place' champion! One kilo of pure magic.",
+                unitLabel: '1kg',
+                price: 1500,
+                sortOrder: 3,
+                active: true
+            },
+            {
+                id: 'idli-sambhar-chutney',
+                category: 'idli',
+                name: 'Idli Sambhar Chutney',
+                description: '',
+                unitLabel: '3 idlis',
+                price: 70,
+                sortOrder: 1,
+                active: true
+            },
+            {
+                id: 'idli-chicken-gravy',
+                category: 'idli',
+                name: 'Idli Chicken Gravy',
+                description: '',
+                unitLabel: '3 idlis',
+                price: 160,
+                sortOrder: 2,
+                active: true
+            },
+            {
+                id: 'idli-mutton-gravy',
+                category: 'idli',
+                name: 'Idli Mutton Gravy',
+                description: '',
+                unitLabel: '3 idlis',
+                price: 220,
+                sortOrder: 3,
+                active: true
+            },
+            {
+                id: 'appam-kadalai-kari',
+                category: 'appam',
+                name: 'Appam with Kadalai Kari',
+                description: '',
+                unitLabel: '3 appams',
+                price: 80,
+                sortOrder: 1,
+                active: true
+            },
+            {
+                id: 'appam-chicken-gravy',
+                category: 'appam',
+                name: 'Appam with Chicken Gravy',
+                description: '',
+                unitLabel: '3 appams',
+                price: 170,
+                sortOrder: 2,
+                active: true
+            },
+            {
+                id: 'appam-mutton-gravy',
+                category: 'appam',
+                name: 'Appam with Mutton Gravy',
+                description: '',
+                unitLabel: '3 appams',
+                price: 230,
+                sortOrder: 3,
+                active: true
+            },
+            {
+                id: 'puttu-kadalai-kari',
+                category: 'puttu',
+                name: 'Rice Puttu with Kadalai Kari',
+                description: '',
+                unitLabel: '1 puttu',
+                price: 70,
+                sortOrder: 1,
+                active: true
+            },
+            {
+                id: 'puttu-chicken-gravy',
+                category: 'puttu',
+                name: 'Rice Puttu with Chicken Gravy',
+                description: '',
+                unitLabel: '1 puttu',
+                price: 160,
+                sortOrder: 2,
+                active: true
+            },
+            {
+                id: 'puttu-mutton-gravy',
+                category: 'puttu',
+                name: 'Rice Puttu with Mutton Gravy',
+                description: '',
+                unitLabel: '1 puttu',
+                price: 220,
+                sortOrder: 3,
+                active: true
+            }
+        ];
+
+        async function seedProducts() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Seeding...</p>';
+
+            const outcomes = [];
+            for (const product of PRODUCTS) {
+                try {
+                    const { id, ...data } = product;
+                    await db.collection('products').doc(id).set(data);
+                    outcomes.push({ ...product, status: 'success' });
+                } catch (err) {
+                    outcomes.push({ ...product, status: 'failed', error: err.message });
+                }
+            }
+
+            let html = '<table><thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Result</th></tr></thead><tbody>';
+            outcomes.forEach(o => {
+                const badgeClass = o.status === 'success' ? 'badge-success' : 'badge-failed';
+                html += `<tr>
+                    <td>${o.id}</td>
+                    <td>${o.name}</td>
+                    <td>${o.category}</td>
+                    <td>₹${o.price}</td>
+                    <td><span class="badge ${badgeClass}">${o.status}</span>${o.error ? ' — ' + o.error : ''}</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+
+            const successCount = outcomes.filter(o => o.status === 'success').length;
+            html += `<p style="margin-top:15px;"><strong>${successCount} of ${outcomes.length}</strong> products seeded successfully.</p>`;
+            html += '<p style="margin-top:10px; color:#666;">Check Firebase Console → Firestore Database → Data → products to confirm, then delete this file from your repo.</p>';
+
+            results.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
