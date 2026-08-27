@@ -673,6 +673,25 @@
             border-color: #d4622a;
         }
 
+        input[type="text"],
+        input[type="email"],
+        input[type="number"],
+        input[type="url"],
+        input[type="password"] {
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="number"]:focus,
+        input[type="url"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #d4622a;
+            background: #fffbf8;
+            box-shadow: 0 0 0 3px rgba(212, 98, 42, 0.08);
+        }
+
         .hidden { display: none !important; }
 
         #dashboardView {
@@ -710,6 +729,12 @@
 
             .charts-grid {
                 grid-template-columns: 1fr;
+            }
+
+            /* Products responsive */
+            #products > div > div {
+                grid-template-columns: 1fr !important;
+                gap: 24px !important;
             }
 
             h1 {
@@ -907,67 +932,78 @@
 
             <!-- PRODUCTS TAB -->
             <div id="products" class="tab-content">
-                <div style="margin-bottom: 30px;">
-                    <h2 style="font-size: 20px; font-weight: 700; color: #1e1e2e; margin-bottom: 10px;">📦 Manage Products</h2>
-                    <p style="color: #999; font-size: 14px;">Add, edit, or manage your product catalog</p>
+                <div style="margin-bottom: 50px;">
+                    <h2 style="font-size: 24px; font-weight: 700; color: #1e1e2e; margin-bottom: 6px;">📦 Manage Products</h2>
+                    <p style="color: #888; font-size: 14px;">Add, edit, or manage your product catalog</p>
                 </div>
 
-                <!-- ADD PRODUCT CARD -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 40px;">
-                    <div style="background: white; padding: 28px; border-radius: 12px; border: 2px dashed #d4622a; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                        <h3 style="color: #1e1e2e; margin-bottom: 20px; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                <!-- TWO COLUMN LAYOUT -->
+                <div style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 40px; align-items: start;">
+                    
+                    <!-- LEFT: ADD FORM -->
+                    <div style="background: linear-gradient(135deg, #fff8f3 0%, #fffbf7 100%); padding: 40px; border-radius: 16px; border: 2px solid #d4622a; box-shadow: 0 4px 12px rgba(212, 98, 42, 0.08); height: fit-content;">
+                        <h3 style="color: #d4622a; margin-bottom: 28px; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
                             <span style="font-size: 24px;">➕</span> Add New Product
                         </h3>
-                        <div style="margin-bottom: 16px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #333;">Product ID</label>
-                            <input type="text" id="productId" placeholder="e.g., cake-ninja-plum" style="width: 100%;">
+                        
+                        <div style="margin-bottom: 22px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #1e1e2e;">Product ID</label>
+                            <input type="text" id="productId" placeholder="cake-ninja-plum" style="width: 100%; padding: 12px 14px; border: 2px solid #d4622a20; border-radius: 8px; font-size: 13px; box-sizing: border-box; background: white;">
                         </div>
-                        <div style="margin-bottom: 16px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #333;">Product Name</label>
-                            <input type="text" id="productName" placeholder="e.g., The Ninja Plum Cake" style="width: 100%;">
-                        </div>
-                        <div style="margin-bottom: 16px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #333;">Category</label>
-                            <input type="text" id="productCategory" placeholder="e.g., Cakes" style="width: 100%;">
-                        </div>
-                        <div style="margin-bottom: 16px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #333;">Unit</label>
-                            <input type="text" id="productUnit" placeholder="e.g., 250g" style="width: 100%;">
-                        </div>
-                        <div style="margin-bottom: 16px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #333;">Price (₹)</label>
-                            <input type="number" id="productPrice" placeholder="500" style="width: 100%;">
-                        </div>
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #333;">Image URL</label>
-                            <input type="url" id="productImage" placeholder="https://example.com/image.jpg" style="width: 100%;">
-                        </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn-primary" onclick="addProduct()" style="flex: 1;">Add Product</button>
-                            <button class="btn-secondary" onclick="clearProductForm()">Clear</button>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- PRODUCTS TABLE -->
-                <div class="table-container">
-                    <div class="table-header">
-                        <h3>All Products</h3>
+                        <div style="margin-bottom: 22px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #1e1e2e;">Product Name</label>
+                            <input type="text" id="productName" placeholder="The Ninja Plum Cake" style="width: 100%; padding: 12px 14px; border: 2px solid #d4622a20; border-radius: 8px; font-size: 13px; box-sizing: border-box; background: white;">
+                        </div>
+
+                        <div style="margin-bottom: 22px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #1e1e2e;">Category</label>
+                            <input type="text" id="productCategory" placeholder="Cakes" style="width: 100%; padding: 12px 14px; border: 2px solid #d4622a20; border-radius: 8px; font-size: 13px; box-sizing: border-box; background: white;">
+                        </div>
+
+                        <div style="margin-bottom: 22px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #1e1e2e;">Unit</label>
+                            <input type="text" id="productUnit" placeholder="250g" style="width: 100%; padding: 12px 14px; border: 2px solid #d4622a20; border-radius: 8px; font-size: 13px; box-sizing: border-box; background: white;">
+                        </div>
+
+                        <div style="margin-bottom: 22px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #1e1e2e;">Price (₹)</label>
+                            <input type="number" id="productPrice" placeholder="500" style="width: 100%; padding: 12px 14px; border: 2px solid #d4622a20; border-radius: 8px; font-size: 13px; box-sizing: border-box; background: white;">
+                        </div>
+
+                        <div style="margin-bottom: 28px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #1e1e2e;">Image URL</label>
+                            <input type="url" id="productImage" placeholder="https://example.com/image.jpg" style="width: 100%; padding: 12px 14px; border: 2px solid #d4622a20; border-radius: 8px; font-size: 13px; box-sizing: border-box; background: white;">
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-primary" onclick="addProduct()" style="flex: 1; padding: 12px 16px; font-size: 14px;">Add Product</button>
+                            <button class="btn-secondary" onclick="clearProductForm()" style="padding: 12px 16px; font-size: 14px;">Clear</button>
+                        </div>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Product Name</th>
-                                <th>Category</th>
-                                <th>Unit</th>
-                                <th>Price (₹)</th>
-                                <th>Status</th>
-                                <th style="text-align: center;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="productsTable">
-                        </tbody>
-                    </table>
+
+                    <!-- RIGHT: PRODUCTS TABLE -->
+                    <div style="background: white; border-radius: 16px; border: 1px solid #e8e8f0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                        <div style="padding: 28px 32px; border-bottom: 1px solid #e8e8f0; background: #fafafa;">
+                            <h3 style="font-size: 16px; font-weight: 700; color: #1e1e2e; margin: 0;">Your Products</h3>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%;">
+                                <thead>
+                                    <tr style="background: #f5f5f5;">
+                                        <th style="padding: 16px 20px; text-align: left; font-weight: 600; font-size: 13px; color: #666; border-bottom: 1px solid #e8e8f0;">Product Name</th>
+                                        <th style="padding: 16px 20px; text-align: left; font-weight: 600; font-size: 13px; color: #666; border-bottom: 1px solid #e8e8f0;">Category</th>
+                                        <th style="padding: 16px 20px; text-align: left; font-weight: 600; font-size: 13px; color: #666; border-bottom: 1px solid #e8e8f0;">Unit</th>
+                                        <th style="padding: 16px 20px; text-align: left; font-weight: 600; font-size: 13px; color: #666; border-bottom: 1px solid #e8e8f0;">Price</th>
+                                        <th style="padding: 16px 20px; text-align: left; font-weight: 600; font-size: 13px; color: #666; border-bottom: 1px solid #e8e8f0;">Status</th>
+                                        <th style="padding: 16px 20px; text-align: center; font-weight: 600; font-size: 13px; color: #666; border-bottom: 1px solid #e8e8f0;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productsTable" style="background: white;">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1365,17 +1401,27 @@
             });
 
             const productCounts = {};
+            const productNames = {}; // Track the display name for each product
             mtdOrders.forEach(order => {
                 if (order.lineItems) {
                     order.lineItems.forEach(item => {
-                        productCounts[item.name] = (productCounts[item.name] || 0) + item.quantity;
+                        // Normalize name to lowercase for grouping, but keep original for display
+                        const normalizedName = (item.name || '').trim().toLowerCase();
+                        if (normalizedName) {
+                            productCounts[normalizedName] = (productCounts[normalizedName] || 0) + item.quantity;
+                            // Use the first occurrence's capitalization as the display name
+                            if (!productNames[normalizedName]) {
+                                productNames[normalizedName] = item.name.trim();
+                            }
+                        }
                     });
                 }
             });
 
             const topProducts = Object.entries(productCounts)
                 .sort((a, b) => b[1] - a[1])
-                .slice(0, 10);
+                .slice(0, 10)
+                .map(([key, count]) => [productNames[key] || key, count]);
 
             if (productsChart) productsChart.destroy();
             const productsCtx = document.getElementById('productsChart').getContext('2d');
@@ -1559,28 +1605,28 @@
         function populateProductsTable(products) {
             const tbody = document.getElementById('productsTable');
             tbody.innerHTML = products.map(p => `
-                <tr>
-                    <td><strong>${p.name}</strong></td>
-                    <td>${p.category}</td>
-                    <td>${p.unit}</td>
-                    <td>₹${formatCurrency(p.price)}</td>
-                    <td>
+                <tr style="border-bottom: 1px solid #e8e8f0; transition: background 0.2s;">
+                    <td style="padding: 16px 20px;"><strong style="color: #1e1e2e; font-size: 14px;">${p.name}</strong></td>
+                    <td style="padding: 16px 20px; color: #666; font-size: 13px;">${p.category}</td>
+                    <td style="padding: 16px 20px; color: #666; font-size: 13px;">${p.unit}</td>
+                    <td style="padding: 16px 20px; color: #1e1e2e; font-weight: 600; font-size: 14px;">₹${formatCurrency(p.price)}</td>
+                    <td style="padding: 16px 20px;">
                         <button 
                             onclick="toggleProductStatus('${p.id}', ${p.active !== false})"
-                            style="padding: 6px 12px; font-size: 12px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; transition: all 0.3s; ${p.active !== false ? 'background: #d1e7dd; color: #0f5132;' : 'background: #f8d7da; color: #842029;'}"
+                            style="padding: 6px 14px; font-size: 12px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; transition: all 0.3s; ${p.active !== false ? 'background: #d1e7dd; color: #0f5132;' : 'background: #f8d7da; color: #842029;'}"
                         >
                             ${p.active !== false ? '✓ Active' : '✕ Inactive'}
                         </button>
                     </td>
-                    <td style="text-align: center;">
-                        <button class="btn-primary" style="padding: 6px 12px; font-size: 12px; margin-right: 6px;" onclick="editProduct('${p.id}', '${p.name}', '${p.category}', '${p.unit}', ${p.price}, '${(p.imageUrl || '').replace(/'/g, "\\'")}')">✏️ Edit</button>
-                        <button class="btn-cancel" style="padding: 6px 12px; font-size: 12px;" onclick="deleteProduct('${p.id}')">🗑️ Delete</button>
+                    <td style="padding: 16px 20px; text-align: center;">
+                        <button class="btn-primary" style="padding: 6px 12px; font-size: 12px; margin-right: 6px; border-radius: 6px;" onclick="editProduct('${p.id}', '${p.name}', '${p.category}', '${p.unit}', ${p.price}, '${(p.imageUrl || '').replace(/'/g, "\\'")}')">✏️ Edit</button>
+                        <button class="btn-cancel" style="padding: 6px 12px; font-size: 12px; border-radius: 6px;" onclick="deleteProduct('${p.id}')">🗑️ Delete</button>
                     </td>
                 </tr>
             `).join('');
 
             if (products.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999; padding: 40px;">No products yet. Add one to get started!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999; padding: 60px 20px; font-size: 14px;">No products yet.<br>Add your first product using the form →</td></tr>';
             }
         }
 
