@@ -882,6 +882,11 @@
             <div class="checkout-container">
                 <h1 class="checkout-title">✅ Complete Your Order</h1>
 
+                <div id="orderModeIndicator" style="background: #d1e7dd; border-left: 4px solid #28a745; padding: 12px; border-radius: 4px; margin-bottom: 20px; display: none;">
+                    <span style="color: #0f5132; font-weight: 600; font-size: 13px;">🔍 Resuming Payment for Existing Order</span>
+                    <div style="color: #0f5132; font-size: 12px; margin-top: 6px;">These details are locked and cannot be modified.</div>
+                </div>
+
                 <div class="form-section">
                     <label class="form-section-title">Delivery Method</label>
                     <div class="delivery-toggle">
@@ -1024,6 +1029,7 @@
         let totalAmount = 0;
         let deliveryCharge = 0;
         let currentOrderId = null;
+        let isSearchingOrder = false;
 
         const UPI_ID = '9884908910@hdfc';
         
@@ -1332,8 +1338,24 @@
         // CHECKOUT FLOW
         // ============================================================
         function startCheckout() {
+            isSearchingOrder = false;
             deliveryCharge = 0;
             deliveryType = 'delivery';
+            
+            // Clear all fields for new order
+            document.getElementById('customerName').value = '';
+            document.getElementById('customerPhone').value = '';
+            document.getElementById('customerEmail').value = '';
+            document.getElementById('customerAddress').value = '';
+            document.getElementById('customerPincode').value = '';
+            
+            // Unlock all fields
+            unlockOrderFields();
+            
+            // Clear order ID (new order, not search)
+            currentOrderId = null;
+            document.getElementById('orderIdDisplay').textContent = 'NEW ORDER';
+            
             updateOrderSummary();
             switchView('checkoutView');
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1395,7 +1417,57 @@
             updateOrderSummary();
         }
 
+        function lockOrderFields() {
+            document.getElementById('customerName').setAttribute('readonly', 'readonly');
+            document.getElementById('customerPhone').setAttribute('readonly', 'readonly');
+            document.getElementById('customerEmail').setAttribute('readonly', 'readonly');
+            document.getElementById('customerAddress').setAttribute('readonly', 'readonly');
+            document.getElementById('customerPincode').setAttribute('readonly', 'readonly');
+            
+            // Disable delivery type toggle
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.setAttribute('disabled', 'disabled');
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            });
+            
+            // Style to show they're locked
+            document.querySelectorAll('#customerName, #customerPhone, #customerEmail, #customerAddress, #customerPincode').forEach(el => {
+                el.style.backgroundColor = '#f5f5f5';
+                el.style.cursor = 'not-allowed';
+            });
+            
+            // Show indicator
+            document.getElementById('orderModeIndicator').style.display = 'block';
+        }
+
+        function unlockOrderFields() {
+            document.getElementById('customerName').removeAttribute('readonly');
+            document.getElementById('customerPhone').removeAttribute('readonly');
+            document.getElementById('customerEmail').removeAttribute('readonly');
+            document.getElementById('customerAddress').removeAttribute('readonly');
+            document.getElementById('customerPincode').removeAttribute('readonly');
+            
+            // Enable delivery type toggle
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.removeAttribute('disabled');
+                btn.style.opacity = '';
+                btn.style.cursor = '';
+            });
+            
+            // Reset style
+            document.querySelectorAll('#customerName, #customerPhone, #customerEmail, #customerAddress, #customerPincode').forEach(el => {
+                el.style.backgroundColor = '';
+                el.style.cursor = '';
+            });
+            
+            // Hide indicator
+            document.getElementById('orderModeIndicator').style.display = 'none';
+        }
+
         function goBackToStore() {
+            isSearchingOrder = false;
+            unlockOrderFields();
             switchView('storeView');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -1404,6 +1476,12 @@
         // PLACE ORDER
         // ============================================================
         function placeOrder() {
+            // Prevent placing a modified searched order
+            if (isSearchingOrder) {
+                alert('⚠️ This is a searched order for payment only.\n\nTo place a new order, click "Back to Store" and start fresh.');
+                return;
+            }
+
             const name = document.getElementById('customerName').value.trim();
             const phone = document.getElementById('customerPhone').value.trim();
             const email = document.getElementById('customerEmail').value.trim();
@@ -1615,6 +1693,7 @@
                         }
 
                         // Status is pending_payment - show payment screen
+                        isSearchingOrder = true;
                         document.getElementById('orderIdDisplay').textContent = currentOrderId;
                         
                         // Populate checkout form
@@ -1633,6 +1712,9 @@
                         } else {
                             setDeliveryType('pickup');
                         }
+
+                        // Lock all fields - customer cannot edit original order details
+                        lockOrderFields();
 
                         // Populate cart from order
                         cart = {};
