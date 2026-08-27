@@ -54,13 +54,13 @@
         .logo-section {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 16px;
             flex: 1;
         }
 
         .logo-image {
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             flex-shrink: 0;
         }
 
@@ -72,7 +72,7 @@
 
         .logo-section h1 {
             font-family: 'Crimson Text', serif;
-            font-size: 22px;
+            font-size: 28px;
             font-weight: 700;
             color: var(--accent-blue);
             letter-spacing: -0.5px;
@@ -121,11 +121,11 @@
                 gap: 16px;
             }
             .logo-image {
-                width: 80px;
-                height: 80px;
+                width: 120px;
+                height: 120px;
             }
             .logo-section h1 {
-                font-size: 28px;
+                font-size: 32px;
             }
             .tagline {
                 font-size: 11px;
@@ -141,11 +141,11 @@
                 padding: 16px 20px;
             }
             .logo-image {
-                width: 100px;
-                height: 100px;
+                width: 160px;
+                height: 160px;
             }
             .logo-section h1 {
-                font-size: 32px;
+                font-size: 40px;
             }
             .tagline {
                 font-size: 12px;
@@ -1316,7 +1316,7 @@
 
                 html += `
                     <div class="cart-item">
-                        <span class="cart-item-name">${product.name}</span>
+                        <span class="cart-item-name">${product.name} <span style="color: #999; font-size: 12px;">(${product.unit})</span></span>
                         <span class="cart-item-qty">${qty}×</span>
                         <span class="cart-item-price">₹${lineTotal}</span>
                     </div>
