@@ -1348,6 +1348,7 @@
             document.getElementById('customerEmail').value = '';
             document.getElementById('customerAddress').value = '';
             document.getElementById('customerPincode').value = '';
+            document.getElementById('proofFile').value = '';
             
             // Unlock all fields
             unlockOrderFields();
@@ -1355,6 +1356,13 @@
             // Clear order ID (new order, not search)
             currentOrderId = null;
             document.getElementById('orderIdDisplay').textContent = 'NEW ORDER';
+            
+            // Show Place Order button (hide payment sections)
+            document.getElementById('placeOrderBtn').style.display = 'block';
+            document.getElementById('qrSection').classList.remove('show');
+            document.getElementById('payBtn').classList.remove('show');
+            document.getElementById('proofSection').classList.remove('show');
+            document.getElementById('submitProofBtn').classList.remove('show');
             
             updateOrderSummary();
             switchView('checkoutView');
@@ -1468,6 +1476,12 @@
         function goBackToStore() {
             isSearchingOrder = false;
             unlockOrderFields();
+            
+            // Clear search form
+            document.getElementById('searchOrderId').value = '';
+            document.getElementById('searchError').textContent = '';
+            document.getElementById('searchError').style.display = 'none';
+            
             switchView('storeView');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -1666,6 +1680,10 @@
                         const order = doc.data();
                         currentOrderId = orderId;
 
+                        // Clear any previous error messages
+                        document.getElementById('searchError').textContent = '';
+                        document.getElementById('searchError').style.display = 'none';
+
                         // Check order status
                         if (order.status === 'payment_proof_submitted') {
                             alert('✅ Payment proof received!\n\nOrder ID: ' + orderId + '\n\nWe are reviewing your payment. You will be notified once confirmed.');
@@ -1696,6 +1714,12 @@
                         isSearchingOrder = true;
                         document.getElementById('orderIdDisplay').textContent = currentOrderId;
                         
+                        // Clear search field
+                        document.getElementById('searchOrderId').value = '';
+                        
+                        // Clear previous payment proof file
+                        document.getElementById('proofFile').value = '';
+                        
                         // Populate checkout form
                         document.getElementById('customerName').value = order.customerName || '';
                         document.getElementById('customerPhone').value = order.customerPhone || '';
@@ -1707,7 +1731,6 @@
                                 const parts = order.deliveryAddress.split(', ');
                                 document.getElementById('customerAddress').value = parts.slice(0, -1).join(', ');
                                 document.getElementById('customerPincode').value = parts[parts.length - 1];
-                                calculateDeliveryCharge();
                             }
                         } else {
                             setDeliveryType('pickup');
@@ -1722,7 +1745,23 @@
                             cart[item.productId] = item.quantity;
                         });
                         updateCartDisplay();
-                        updateOrderSummary();
+                        
+                        // For searched orders, use the stored order total, not recalculate
+                        document.getElementById('checkoutSummaryItems').innerHTML = order.lineItems.map(item => `
+                            <div class="checkout-summary-item">
+                                <span>${item.name} × ${item.quantity}</span>
+                                <span>₹${item.lineTotal}</span>
+                            </div>
+                        `).join('');
+                        
+                        const subtotal = order.subtotal || order.lineItems.reduce((sum, item) => sum + item.lineTotal, 0);
+                        document.getElementById('sidebarSubtotal').textContent = '₹' + subtotal;
+                        document.getElementById('checkoutTotal').textContent = '₹' + order.orderTotal;
+                        
+                        // Display delivery charge if it exists
+                        if (order.deliveryCharge > 0) {
+                            document.getElementById('deliveryChargeAmount').textContent = '₹' + order.deliveryCharge;
+                        }
 
                         // Show payment section
                         generateQRCode(order.orderTotal);
