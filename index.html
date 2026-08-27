@@ -28,11 +28,9 @@
             background: linear-gradient(to right, #ff9a56 0%, #faf8f3 35%, #faf8f3 65%, #1f8f1f 100%);
             color: var(--text-dark);
             line-height: 1.6;
+            min-height: 100vh;
         }
 
-        /* ============================================================
-           HEADER
-           ============================================================ */
         header {
             background: white;
             border-bottom: 2px solid var(--border-light);
@@ -99,9 +97,6 @@
 
         .cart-badge:hover { background: var(--dark-orange); }
 
-        /* ============================================================
-           MAIN CONTENT
-           ============================================================ */
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -114,17 +109,10 @@
         .products-section { grid-column: 1; }
         .cart-sidebar { grid-column: 2; }
 
-        .store-view { display: none; }
-        .store-view.active { display: block; }
-        .checkout-view { display: none; }
-        .checkout-view.active { display: block; }
+        .view { display: none; }
+        .view.active { display: block; }
 
-        /* ============================================================
-           CATEGORY GROUPS
-           ============================================================ */
-        .category-group {
-            margin-bottom: 50px;
-        }
+        .category-group { margin-bottom: 50px; }
 
         .category-header {
             display: flex;
@@ -156,9 +144,6 @@
             gap: 20px;
         }
 
-        /* ============================================================
-           PRODUCT CARD
-           ============================================================ */
         .product-card {
             background: white;
             border-radius: 10px;
@@ -182,8 +167,6 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            color: #ccc;
-            font-size: 48px;
         }
 
         .product-image img {
@@ -250,9 +233,6 @@
             font-size: 14px;
         }
 
-        /* ============================================================
-           CART SIDEBAR
-           ============================================================ */
         .cart-sidebar {
             position: sticky;
             top: 100px;
@@ -362,7 +342,7 @@
             font-weight: 700;
             cursor: pointer;
             font-size: 13px;
-            transition: transform 0.2s;
+            transition: all 0.2s;
         }
 
         .checkout-btn {
@@ -390,6 +370,7 @@
             gap: 30px;
             max-width: 1400px;
             margin: 0 auto;
+            padding: 40px 20px;
         }
 
         .checkout-container {
@@ -436,6 +417,14 @@
         }
 
         .checkout-summary-item:last-child { border-bottom: none; }
+
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 6px 0;
+            color: var(--text-light);
+        }
 
         .checkout-total {
             display: flex;
@@ -516,7 +505,30 @@
             border-color: var(--primary-orange);
         }
 
-        .hidden { display: none; }
+        .hidden { display: none !important; }
+
+        .delivery-charge-box {
+            background: #fff8e1;
+            border: 2px solid #ffc107;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .delivery-charge-box.show { display: block; }
+
+        .delivery-charge-label {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+
+        .delivery-charge-amount {
+            font-size: 18px;
+            font-weight: 700;
+            color: #f57c00;
+        }
 
         .qr-section {
             text-align: center;
@@ -524,7 +536,10 @@
             padding: 15px;
             border-radius: 6px;
             margin-bottom: 15px;
+            display: none;
         }
+
+        .qr-section.show { display: block; }
 
         #qrcode {
             margin: 10px auto;
@@ -551,9 +566,19 @@
             font-size: 14px;
             margin-top: 10px;
             transition: transform 0.2s;
+            display: none;
         }
 
+        .pay-btn.show { display: block; }
+
         .pay-btn:hover { transform: translateY(-1px); }
+
+        .proof-section {
+            display: none;
+            margin-top: 15px;
+        }
+
+        .proof-section.show { display: block; }
 
         .action-buttons {
             display: flex;
@@ -589,6 +614,48 @@
 
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+        .btn-submit-proof {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--accent-green) 0%, #158015 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .btn-submit-proof.show { display: block; }
+
+        .order-search-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .order-search-box {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .order-search-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
         .loading { text-align: center; padding: 60px 20px; color: var(--text-light); }
 
         @media (max-width: 768px) {
@@ -597,20 +664,10 @@
                 gap: 30px;
             }
             .cart-sidebar { position: static; }
-            .checkout-wrapper {
-                grid-template-columns: 1fr;
-            }
+            .checkout-wrapper { grid-template-columns: 1fr; }
             .checkout-sidebar { position: static; }
-            .products-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
-        }
-
-        @media (max-width: 640px) {
-            .header-container { flex-direction: column; align-items: flex-start; }
             .logo-image { width: 70px; height: 70px; }
             .logo-text h1 { font-size: 24px; }
-            .container { padding: 20px 16px; gap: 20px; }
-            .products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-            .checkout-container { padding: 20px; }
         }
     </style>
 </head>
@@ -630,38 +687,42 @@
         </div>
     </header>
 
-    <div class="container store-view active" id="storeView">
-        <div class="products-section" id="productsContainer">
-            <div class="loading">Loading your menu...</div>
-        </div>
+    <!-- ====== STORE VIEW ====== -->
+    <div class="view active" id="storeView">
+        <div class="container">
+            <div class="products-section" id="productsContainer">
+                <div class="loading">Loading your menu...</div>
+            </div>
 
-        <div class="cart-sidebar">
-            <div class="cart-container">
-                <div class="cart-header">Your Order</div>
-                <div class="cart-items" id="cartItems">
-                    <div class="cart-empty">Cart is empty</div>
-                </div>
-                <div class="cart-summary">
-                    <div class="summary-row">
-                        <span>Subtotal</span>
-                        <span id="subtotal">₹0</span>
+            <div class="cart-sidebar">
+                <div class="cart-container">
+                    <div class="cart-header">Your Order</div>
+                    <div class="cart-items" id="cartItems">
+                        <div class="cart-empty">Cart is empty</div>
                     </div>
-                    <div class="summary-row total">
-                        <span>Total</span>
-                        <span class="price" id="total">₹0</span>
-                    </div>
-                    <div class="cart-actions">
-                        <button class="checkout-btn" id="checkoutBtn" disabled onclick="startCheckout()">
-                            Checkout
-                        </button>
-                        <button class="clear-btn" onclick="clearCart()">Clear</button>
+                    <div class="cart-summary">
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span id="subtotal">₹0</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Total</span>
+                            <span class="price" id="total">₹0</span>
+                        </div>
+                        <div class="cart-actions">
+                            <button class="checkout-btn" id="checkoutBtn" disabled onclick="startCheckout()">
+                                Checkout
+                            </button>
+                            <button class="clear-btn" onclick="clearCart()">Clear</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="checkout-view" id="checkoutView">
+    <!-- ====== CHECKOUT VIEW ====== -->
+    <div class="view" id="checkoutView">
         <div class="checkout-wrapper">
             <div class="checkout-container">
                 <h1 class="checkout-title">✅ Complete Your Order</h1>
@@ -674,74 +735,97 @@
                     </div>
                 </div>
 
+                <div class="form-section">
+                    <label class="form-section-title">Your Details</label>
+                    <div class="form-group">
+                        <label for="customerName">Name *</label>
+                        <input type="text" id="customerName" maxlength="100" oninput="updateOrderSummary()">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerPhone">Phone *</label>
+                        <input type="tel" id="customerPhone" maxlength="10" placeholder="10-digit number" oninput="updateOrderSummary()">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerEmail">Email *</label>
+                        <input type="email" id="customerEmail" maxlength="100" oninput="updateOrderSummary()">
+                    </div>
+                </div>
+
                 <div id="addressSection">
                     <div class="form-section">
-                        <label class="form-section-title">Your Details</label>
+                        <label class="form-section-title">Delivery Address</label>
                         <div class="form-group">
-                            <label for="customerName">Name *</label>
-                            <input type="text" id="customerName" required maxlength="100">
-                        </div>
-                        <div class="form-group">
-                            <label for="customerPhone">Phone *</label>
-                            <input type="tel" id="customerPhone" required maxlength="10" placeholder="10-digit number">
-                        </div>
-                        <div class="form-group">
-                            <label for="customerAddress">Delivery Address *</label>
-                            <textarea id="customerAddress" required maxlength="200" placeholder="House no, Street, Area"></textarea>
+                            <label for="customerAddress">Address *</label>
+                            <textarea id="customerAddress" maxlength="200" placeholder="House no, Street, Area" oninput="updateOrderSummary()"></textarea>
                         </div>
                         <div class="form-group">
                             <label for="customerPincode">Pincode *</label>
-                            <input type="text" id="customerPincode" required maxlength="6" placeholder="6-digit pincode">
+                            <input type="text" id="customerPincode" maxlength="6" placeholder="6-digit pincode" oninput="calculateDeliveryCharge()">
+                        </div>
+                        <div class="delivery-charge-box" id="deliveryChargeBox">
+                            <div class="delivery-charge-label">Delivery Charge:</div>
+                            <div class="delivery-charge-amount" id="deliveryChargeAmount">₹0</div>
                         </div>
                     </div>
                 </div>
 
                 <div id="pickupSection" class="hidden">
-                    <div class="form-section">
-                        <label class="form-section-title">Pickup Confirmation</label>
-                        <div class="form-group">
-                            <label for="customerNamePickup">Name *</label>
-                            <input type="text" id="customerNamePickup" required maxlength="100">
-                        </div>
-                        <div class="form-group">
-                            <label for="customerPhonePickup">Phone *</label>
-                            <input type="tel" id="customerPhonePickup" required maxlength="10" placeholder="10-digit number">
-                        </div>
-                        <p style="font-size: 13px; color: var(--text-light); margin-top: 12px;">
-                            ✓ We'll notify you when your order is ready for pickup at our kitchen.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <label class="form-section-title">Payment</label>
-                    <div class="form-group">
-                        <label for="proofFile">Upload Payment Screenshot *</label>
-                        <input type="file" id="proofFile" accept="image/*" required>
-                        <div style="font-size: 12px; color: var(--text-light); margin-top: 6px;">Upload a screenshot of your UPI payment confirmation</div>
-                    </div>
+                    <p style="font-size: 13px; color: var(--text-light); margin: 15px 0;">
+                        ✓ We'll notify you when your order is ready for pickup at our kitchen.
+                    </p>
                 </div>
 
                 <div class="action-buttons">
                     <button class="btn btn-secondary" onclick="goBackToStore()">← Back to Menu</button>
-                    <button class="btn btn-primary" id="submitBtn" onclick="submitOrder()">Place Order</button>
+                    <button class="btn btn-primary" id="placeOrderBtn" onclick="placeOrder()">Place Order</button>
                 </div>
             </div>
 
             <div class="checkout-sidebar">
                 <h2 class="checkout-sidebar-title">Order Summary</h2>
                 <div id="checkoutSummaryItems"></div>
+                <div class="summary-line">
+                    <span>Subtotal</span>
+                    <span id="sidebarSubtotal">₹0</span>
+                </div>
+                <div class="summary-line" id="deliveryChargeLine" style="display:none;">
+                    <span>Delivery</span>
+                    <span id="sidebarDeliveryCharge">₹0</span>
+                </div>
                 <div class="checkout-total">
                     <span>Total</span>
                     <span class="amount" id="checkoutTotal">₹0</span>
                 </div>
 
-                <div class="qr-section">
+                <div class="qr-section" id="qrSection">
                     <div style="font-size: 12px; color: var(--text-light); margin-bottom: 8px;">Scan to pay via UPI:</div>
                     <div id="qrcode"></div>
                     <div class="upi-id-display" id="upiIdDisplay">9884908910@hdfc</div>
-                    <button class="pay-btn" onclick="openUPI()">💳 Pay via UPI</button>
+                    <button class="pay-btn" id="payBtn" onclick="openUPI()">💳 Pay via UPI</button>
                 </div>
+
+                <div class="proof-section" id="proofSection">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-dark); display: block; margin-bottom: 8px;">Upload Payment Screenshot *</label>
+                    <input type="file" id="proofFile" accept="image/*" style="display: block; width: 100%; font-size: 12px;">
+                    <div style="font-size: 11px; color: var(--text-light); margin-top: 6px;">Upload screenshot of your UPI payment confirmation</div>
+                    <button class="btn-submit-proof" id="submitProofBtn" onclick="submitPaymentProof()">Submit Payment Proof</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== ORDER SEARCH VIEW ====== -->
+    <div class="view" id="orderSearchView">
+        <div class="order-search-page">
+            <div class="order-search-box">
+                <h2 class="order-search-title">Resume Payment</h2>
+                <div class="form-group">
+                    <label for="searchOrderId">Order ID</label>
+                    <input type="text" id="searchOrderId" placeholder="e.g., ORD1693484759423" style="margin-bottom: 15px;">
+                </div>
+                <button class="btn btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="searchOrder()">Search Order</button>
+                <button class="btn btn-secondary" style="width: 100%;" onclick="goBackToStore()">Back to Store</button>
+                <div id="searchError" style="color: #d32f2f; margin-top: 15px; font-size: 13px; display: none;"></div>
             </div>
         </div>
     </div>
@@ -762,10 +846,16 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        // Pincode-to-distance data (from Excel)
+        const pincodeData = {"600016":1.0,"600032":2.3,"600061":4.8,"600088":2.0,"600069":16.4,"600015":4.5,"600083":5.6,"600035":6.7,"600091":7.0,"600024":8.1,"600017":7.6,"600078":6.7,"600085":7.7,"600094":9.2,"600028":10.3,"600070":11.0,"600026":7.0,"600020":8.5,"600043":8.0,"600075":10.8,"600087":9.0,"600092":9.6,"600018":8.0,"600029":10.9,"600113":9.4,"600004":11.4,"600034":10.2,"600106":9.2,"600041":12.7,"600090":10.5,"600066":27.8,"600014":15.1,"600107":12.1,"600042":6.5,"600089":4.2,"600006":9.4,"600067":37.0,"600030":13.2,"600040":14.0,"600096":11.8,"600116":9.1,"600002":14.1,"600005":15.7,"600010":13.7,"600044":10.0,"600008":13.5,"600097":13.1,"600007":14.7,"600064":13.3,"600122":13.4,"600050":14.4,"600023":17.4,"600003":18.3,"600049":15.7,"600095":11.5,"600009":17.9,"600012":17.4,"600082":18.8,"600001":19.7,"600077":17.7,"600045":14.5,"600011":22.0,"600119":20.7,"600013":21.7,"600073":17.5,"600100":12.3,"600099":18.5,"600126":19.5,"600039":24.3,"600021":22.8,"600053":18.7,"600048":22.8,"600118":22.0,"600081":24.8,"600063":18.5,"600056":15.0,"600060":25.0,"600054":25.0,"600019":28.4,"600052":30.2,"600130":20.0,"600062":27.0,"603202":27.0,"603103":30.0,"602105":35.0};
+
         let allProducts = [];
         let cart = {};
         let deliveryType = 'delivery';
         let totalAmount = 0;
+        let deliveryCharge = 0;
+        let currentOrderId = null;
+
         const UPI_ID = '9884908910@hdfc';
         
         const categoryIcons = {
@@ -774,6 +864,43 @@
             appam: '🥞',
             puttu: '🍲'
         };
+
+        // ============================================================
+        // DELIVERY CHARGE CALCULATION
+        // ============================================================
+        function calculateDeliveryCharge() {
+            const pincode = document.getElementById('customerPincode').value.trim();
+            const chargeBox = document.getElementById('deliveryChargeBox');
+            const chargeAmount = document.getElementById('deliveryChargeAmount');
+            const deliveryLine = document.getElementById('deliveryChargeLine');
+            const sidebarDeliveryCharge = document.getElementById('sidebarDeliveryCharge');
+
+            if (!pincode || !pincodeData[pincode]) {
+                chargeBox.classList.remove('show');
+                deliveryLine.style.display = 'none';
+                deliveryCharge = 0;
+                updateOrderSummary();
+                return;
+            }
+
+            const distance = pincodeData[pincode];
+            
+            // Formula: 0-2km = ₹50, >2 to ≤15 = ₹50 + ₹8×(distance-3), >15 = ₹150 + ₹10×(distance-15)
+            if (distance <= 2) {
+                deliveryCharge = 50;
+            } else if (distance <= 15) {
+                deliveryCharge = 50 + (8 * (distance - 3));
+            } else {
+                deliveryCharge = 150 + (10 * (distance - 15));
+            }
+
+            chargeAmount.textContent = '₹' + deliveryCharge;
+            chargeBox.classList.add('show');
+            deliveryLine.style.display = 'flex';
+            sidebarDeliveryCharge.textContent = '₹' + deliveryCharge;
+
+            updateOrderSummary();
+        }
 
         // ============================================================
         // LOAD PRODUCTS
@@ -932,16 +1059,16 @@
         // CHECKOUT FLOW
         // ============================================================
         function startCheckout() {
-            updateCheckoutSummary();
-            generateQRCode();
-            document.getElementById('storeView').classList.remove('active');
-            document.getElementById('checkoutView').classList.add('active');
+            deliveryCharge = 0;
+            deliveryType = 'delivery';
+            updateOrderSummary();
+            switchView('checkoutView');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function updateCheckoutSummary() {
+        function updateOrderSummary() {
             let html = '';
-            totalAmount = 0;
+            let subtotal = 0;
 
             Object.keys(cart).forEach(productId => {
                 const product = allProducts.find(p => p.id === productId);
@@ -949,7 +1076,7 @@
 
                 const qty = cart[productId];
                 const lineTotal = product.price * qty;
-                totalAmount += lineTotal;
+                subtotal += lineTotal;
 
                 html += `
                     <div class="checkout-summary-item">
@@ -960,27 +1087,10 @@
             });
 
             document.getElementById('checkoutSummaryItems').innerHTML = html;
-            document.getElementById('checkoutTotal').textContent = '₹' + totalAmount;
-        }
-
-        function generateQRCode() {
-            const qrcodeContainer = document.getElementById('qrcode');
-            qrcodeContainer.innerHTML = '';
+            document.getElementById('sidebarSubtotal').textContent = '₹' + subtotal;
             
-            const upiString = `upi://pay?pa=${UPI_ID}&pn=CynthiasKitchen&am=${totalAmount}&tn=Order`;
-            
-            new QRCode(qrcodeContainer, {
-                text: upiString,
-                width: 150,
-                height: 150,
-                colorDark: "#000000",
-                colorLight: "#ffffff"
-            });
-        }
-
-        function openUPI() {
-            const upiString = `upi://pay?pa=${UPI_ID}&pn=CynthiasKitchen&am=${totalAmount}&tn=Order`;
-            window.location.href = upiString;
+            const total = subtotal + (deliveryType === 'delivery' ? deliveryCharge : 0);
+            document.getElementById('checkoutTotal').textContent = '₹' + total;
         }
 
         function setDeliveryType(type) {
@@ -990,31 +1100,54 @@
 
             const addressSection = document.getElementById('addressSection');
             const pickupSection = document.getElementById('pickupSection');
+            const deliveryLine = document.getElementById('deliveryChargeLine');
 
             if (type === 'delivery') {
                 addressSection.classList.remove('hidden');
                 pickupSection.classList.add('hidden');
+                deliveryLine.style.display = 'flex';
             } else {
                 addressSection.classList.add('hidden');
                 pickupSection.classList.remove('hidden');
+                deliveryLine.style.display = 'none';
+                deliveryCharge = 0;
             }
+
+            updateOrderSummary();
         }
 
         function goBackToStore() {
-            document.getElementById('checkoutView').classList.remove('active');
-            document.getElementById('storeView').classList.add('active');
+            switchView('storeView');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // ============================================================
-        // ORDER SUBMISSION
+        // PLACE ORDER
         // ============================================================
-        function submitOrder() {
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Placing order...';
+        function placeOrder() {
+            const name = document.getElementById('customerName').value.trim();
+            const phone = document.getElementById('customerPhone').value.trim();
+            const email = document.getElementById('customerEmail').value.trim();
 
+            if (!name || !phone || !email) {
+                alert('Please fill in Name, Phone, and Email');
+                return;
+            }
+
+            if (deliveryType === 'delivery') {
+                const address = document.getElementById('customerAddress').value.trim();
+                const pincode = document.getElementById('customerPincode').value.trim();
+
+                if (!address || !pincode || !pincodeData[pincode]) {
+                    alert('Please fill in valid Address and Pincode');
+                    return;
+                }
+            }
+
+            // Build line items
             const lineItems = [];
+            let subtotal = 0;
+
             Object.keys(cart).forEach(productId => {
                 const product = allProducts.find(p => p.id === productId);
                 if (!product) return;
@@ -1027,74 +1160,173 @@
                     quantity: qty,
                     lineTotal: product.price * qty
                 });
+                subtotal += product.price * qty;
             });
 
-            let customerName, customerPhone;
-            if (deliveryType === 'delivery') {
-                customerName = document.getElementById('customerName').value.trim();
-                customerPhone = document.getElementById('customerPhone').value.trim();
+            const finalTotal = subtotal + (deliveryType === 'delivery' ? deliveryCharge : 0);
 
-                if (!customerName || !customerPhone || !document.getElementById('customerAddress').value.trim() || !document.getElementById('customerPincode').value.trim()) {
-                    alert('Please fill in all delivery details');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Place Order';
-                    return;
-                }
-            } else {
-                customerName = document.getElementById('customerNamePickup').value.trim();
-                customerPhone = document.getElementById('customerPhonePickup').value.trim();
+            currentOrderId = 'ORD' + Date.now() + Math.floor(Math.random() * 1000);
 
-                if (!customerName || !customerPhone) {
-                    alert('Please enter your name and phone number');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Place Order';
-                    return;
-                }
-            }
+            const orderData = {
+                orderId: currentOrderId,
+                timestamp: new Date(),
+                deliveryType: deliveryType,
+                customerName: name,
+                customerPhone: phone,
+                customerEmail: email,
+                lineItems: lineItems,
+                subtotal: subtotal,
+                deliveryCharge: deliveryType === 'delivery' ? deliveryCharge : 0,
+                orderTotal: finalTotal,
+                status: 'pending_payment',
+                deliveryAddress: deliveryType === 'delivery' ? (document.getElementById('customerAddress').value.trim() + ', ' + document.getElementById('customerPincode').value.trim()) : null,
+                proofBase64: null
+            };
 
+            db.collection('orders').doc(currentOrderId).set(orderData)
+                .then(() => {
+                    // Show payment section
+                    generateQRCode(finalTotal);
+                    document.getElementById('qrSection').classList.add('show');
+                    document.getElementById('payBtn').classList.add('show');
+                    document.getElementById('proofSection').classList.add('show');
+                    document.getElementById('submitProofBtn').classList.add('show');
+                    
+                    // Show order ID
+                    alert('Order created!\n\nOrder ID: ' + currentOrderId + '\n\nNow complete the payment below.');
+                    
+                    // Disable Place Order button
+                    document.getElementById('placeOrderBtn').disabled = true;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                })
+                .catch(err => {
+                    alert('Error creating order: ' + err.message);
+                });
+        }
+
+        function generateQRCode(amount) {
+            const qrcodeContainer = document.getElementById('qrcode');
+            qrcodeContainer.innerHTML = '';
+            
+            const upiString = `upi://pay?pa=${UPI_ID}&pn=CynthiasKitchen&am=${amount}&tn=Order${currentOrderId}`;
+            
+            new QRCode(qrcodeContainer, {
+                text: upiString,
+                width: 150,
+                height: 150,
+                colorDark: "#000000",
+                colorLight: "#ffffff"
+            });
+        }
+
+        function openUPI() {
+            let subtotal = 0;
+            Object.keys(cart).forEach(productId => {
+                const product = allProducts.find(p => p.id === productId);
+                if (product) subtotal += product.price * cart[productId];
+            });
+            const amount = subtotal + (deliveryType === 'delivery' ? deliveryCharge : 0);
+            const upiString = `upi://pay?pa=${UPI_ID}&pn=CynthiasKitchen&am=${amount}&tn=Order${currentOrderId}`;
+            window.location.href = upiString;
+        }
+
+        function submitPaymentProof() {
             const proofFile = document.getElementById('proofFile').files[0];
             if (!proofFile) {
-                alert('Please upload a payment screenshot');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Place Order';
+                alert('Please select a payment screenshot');
                 return;
             }
 
+            const submitBtn = document.getElementById('submitProofBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
             const reader = new FileReader();
             reader.onload = () => {
-                const orderId = 'ORD' + Date.now() + Math.floor(Math.random() * 1000);
-                
-                const orderData = {
-                    orderId: orderId,
-                    timestamp: new Date(),
-                    deliveryType: deliveryType,
-                    customerName: customerName,
-                    customerPhone: customerPhone,
-                    lineItems: lineItems,
-                    orderTotal: totalAmount,
+                db.collection('orders').doc(currentOrderId).update({
                     proofBase64: reader.result,
-                    status: 'pending_approval',
-                    notes: deliveryType === 'delivery' 
-                        ? (document.getElementById('customerAddress').value.trim() + ', ' + document.getElementById('customerPincode').value.trim())
-                        : 'Pickup order'
-                };
-
-                db.collection('orders').doc(orderId).set(orderData)
-                    .then(() => {
-                        cart = {};
-                        updateCartDisplay();
-                        alert('✓ Order placed!\n\nOrder ID: ' + orderId + '\n\nWe\'ll review your payment and confirm shortly.');
-                        goBackToStore();
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = 'Place Order';
-                    })
-                    .catch(err => {
-                        alert('Error placing order: ' + err.message);
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = 'Place Order';
-                    });
+                    status: 'payment_submitted',
+                    paymentSubmittedAt: new Date()
+                })
+                .then(() => {
+                    alert('✓ Payment proof submitted!\n\nYour order ID: ' + currentOrderId + '\n\nWe\'ll review and confirm shortly.');
+                    cart = {};
+                    updateCartDisplay();
+                    goBackToStore();
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Payment Proof';
+                })
+                .catch(err => {
+                    alert('Error: ' + err.message);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Payment Proof';
+                });
             };
             reader.readAsDataURL(proofFile);
+        }
+
+        function searchOrder() {
+            const orderId = document.getElementById('searchOrderId').value.trim();
+            if (!orderId) {
+                alert('Enter an Order ID');
+                return;
+            }
+
+            db.collection('orders').doc(orderId).get()
+                .then(doc => {
+                    if (doc.exists) {
+                        const order = doc.data();
+                        currentOrderId = orderId;
+                        
+                        // Populate checkout form
+                        document.getElementById('customerName').value = order.customerName || '';
+                        document.getElementById('customerPhone').value = order.customerPhone || '';
+                        document.getElementById('customerEmail').value = order.customerEmail || '';
+                        
+                        if (order.deliveryType === 'delivery') {
+                            setDeliveryType('delivery');
+                            if (order.deliveryAddress) {
+                                const parts = order.deliveryAddress.split(', ');
+                                document.getElementById('customerAddress').value = parts.slice(0, -1).join(', ');
+                                document.getElementById('customerPincode').value = parts[parts.length - 1];
+                                calculateDeliveryCharge();
+                            }
+                        } else {
+                            setDeliveryType('pickup');
+                        }
+
+                        // Populate cart from order
+                        cart = {};
+                        order.lineItems.forEach(item => {
+                            cart[item.productId] = item.quantity;
+                        });
+                        updateCartDisplay();
+                        updateOrderSummary();
+
+                        // Show payment section
+                        generateQRCode(order.orderTotal);
+                        document.getElementById('qrSection').classList.add('show');
+                        document.getElementById('payBtn').classList.add('show');
+                        document.getElementById('proofSection').classList.add('show');
+                        document.getElementById('submitProofBtn').classList.add('show');
+                        document.getElementById('placeOrderBtn').style.display = 'none';
+
+                        switchView('checkoutView');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                        document.getElementById('searchError').textContent = 'Order not found. Check your Order ID.';
+                        document.getElementById('searchError').style.display = 'block';
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('searchError').textContent = 'Error: ' + err.message;
+                    document.getElementById('searchError').style.display = 'block';
+                });
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
         }
 
         // ============================================================
