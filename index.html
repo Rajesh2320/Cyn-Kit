@@ -96,9 +96,7 @@
             white-space: nowrap;
         }
 
-        .cart-badge:hover {
-            background: var(--dark-orange);
-        }
+        .cart-badge:hover { background: var(--dark-orange); }
 
         /* ============================================================
            MAIN CONTENT
@@ -114,6 +112,11 @@
 
         .products-section { grid-column: 1; }
         .cart-sidebar { grid-column: 2; }
+
+        .store-view { display: none; }
+        .store-view.active { display: block; }
+        .checkout-view { display: none; }
+        .checkout-view.active { display: block; }
 
         /* ============================================================
            CATEGORY GROUPS
@@ -236,9 +239,7 @@
             transition: background 0.2s;
         }
 
-        .qty-btn:hover {
-            background: var(--border-light);
-        }
+        .qty-btn:hover { background: var(--border-light); }
 
         .qty-display {
             flex-grow: 1;
@@ -288,9 +289,7 @@
             font-size: 13px;
         }
 
-        .cart-item:last-child {
-            border-bottom: none;
-        }
+        .cart-item:last-child { border-bottom: none; }
 
         .cart-item-name {
             flex: 1;
@@ -361,105 +360,212 @@
             transition: transform 0.2s;
         }
 
-        .checkout-btn:hover {
-            transform: translateY(-1px);
-        }
-
-        .checkout-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
+        .checkout-btn:hover { transform: translateY(-1px); }
+        .checkout-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
         /* ============================================================
-           LOADING & EMPTY STATES
+           CHECKOUT FORM
            ============================================================ */
-        .loading {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-light);
-            font-size: 16px;
+        .checkout-container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-light);
+        .checkout-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-bottom: 25px;
         }
 
-        /* ============================================================
-           MOBILE RESPONSIVE
-           ============================================================ */
+        .form-section {
+            margin-bottom: 25px;
+        }
+
+        .form-section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .delivery-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--border-light);
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: var(--primary-orange);
+            color: white;
+            border-color: var(--dark-orange);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .form-group input, .form-group textarea {
+            padding: 10px;
+            border: 2px solid var(--border-light);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+        }
+
+        .hidden { display: none; }
+
+        .order-summary {
+            background: #faf8f3;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .summary-item:last-child { border-bottom: none; }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            color: var(--accent-blue);
+            padding-top: 8px;
+            margin-top: 8px;
+            border-top: 2px solid var(--border-light);
+        }
+
+        .upi-section {
+            background: #f0f8ff;
+            border: 2px solid var(--accent-blue);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .upi-label {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 6px;
+        }
+
+        .upi-id {
+            font-family: monospace;
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--accent-blue);
+            word-break: break-all;
+        }
+
+        .proof-upload {
+            margin-top: 15px;
+        }
+
+        .proof-upload input {
+            display: block;
+        }
+
+        .file-hint {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 6px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover { transform: translateY(-1px); }
+
+        .btn-secondary {
+            background: var(--bg-warm);
+            color: var(--text-dark);
+            border: 2px solid var(--border-light);
+        }
+
+        .btn-secondary:hover { background: var(--border-light); }
+
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .loading { text-align: center; padding: 60px 20px; color: var(--text-light); }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
+
         @media (max-width: 1024px) {
             .container {
                 grid-template-columns: 1fr;
                 gap: 30px;
                 padding: 30px 20px;
             }
-
-            .cart-sidebar {
-                position: sticky;
-                top: 80px;
-                grid-column: 1;
-            }
-
-            .products-grid {
-                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            }
+            .cart-sidebar { position: static; }
+            .products-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
         }
 
         @media (max-width: 640px) {
-            .header-container {
-                flex-direction: row;
-                gap: 12px;
-            }
-
-            .logo-image {
-                width: 70px;
-                height: 70px;
-            }
-
-            .logo-text h1 {
-                font-size: 24px;
-            }
-
-            .container {
-                padding: 20px 16px;
-                gap: 20px;
-            }
-
-            .products-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-            }
-
-            .product-card {
-                border-radius: 8px;
-            }
-
-            .product-image {
-                height: 120px;
-            }
-
-            .product-info {
-                padding: 12px;
-            }
-
-            .product-name {
-                font-size: 14px;
-            }
-
-            .product-price {
-                font-size: 16px;
-            }
-
-            .category-title {
-                font-size: 20px;
-            }
-
-            .cart-sidebar {
-                position: static;
-            }
+            .header-container { flex-direction: column; align-items: flex-start; }
+            .logo-image { width: 70px; height: 70px; }
+            .logo-text h1 { font-size: 24px; }
+            .container { padding: 20px 16px; gap: 20px; }
+            .products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .checkout-container { padding: 20px; }
         }
     </style>
 </head>
@@ -473,13 +579,13 @@
                     <div class="tagline">From our home to yours</div>
                 </div>
             </div>
-            <button class="cart-badge" onclick="scrollToCart()">
+            <button class="cart-badge" id="cartBadge" onclick="scrollToCart()">
                 🛒 <span id="cartCount">0</span> items
             </button>
         </div>
     </header>
 
-    <div class="container">
+    <div class="container store-view active" id="storeView">
         <div class="products-section" id="productsContainer">
             <div class="loading">Loading your menu...</div>
         </div>
@@ -499,10 +605,89 @@
                         <span>Total</span>
                         <span class="price" id="total">₹0</span>
                     </div>
-                    <button class="checkout-btn" id="checkoutBtn" disabled onclick="proceedToCheckout()">
+                    <button class="checkout-btn" id="checkoutBtn" disabled onclick="startCheckout()">
                         Proceed to Checkout
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="checkout-view" id="checkoutView">
+        <div class="checkout-container">
+            <h1 class="checkout-title">✅ Complete Your Order</h1>
+
+            <div class="order-summary">
+                <div id="checkoutSummaryItems"></div>
+                <div class="summary-total">
+                    <span>Total Amount</span>
+                    <span id="checkoutTotal">₹0</span>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <label class="form-section-title">Delivery Method</label>
+                <div class="delivery-toggle">
+                    <button class="toggle-btn active" onclick="setDeliveryType('delivery')">📦 Delivery</button>
+                    <button class="toggle-btn" onclick="setDeliveryType('pickup')">🏪 Pickup</button>
+                </div>
+            </div>
+
+            <div id="addressSection">
+                <div class="form-section">
+                    <label class="form-section-title">Your Details</label>
+                    <div class="form-group">
+                        <label for="customerName">Name *</label>
+                        <input type="text" id="customerName" required maxlength="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerPhone">Phone *</label>
+                        <input type="tel" id="customerPhone" required maxlength="10" placeholder="10-digit number">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerAddress">Delivery Address *</label>
+                        <textarea id="customerAddress" required maxlength="200" placeholder="House no, Street, Area"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerPincode">Pincode *</label>
+                        <input type="text" id="customerPincode" required maxlength="6" placeholder="6-digit pincode">
+                    </div>
+                </div>
+            </div>
+
+            <div id="pickupSection" class="hidden">
+                <div class="form-section">
+                    <label class="form-section-title">Pickup Confirmation</label>
+                    <div class="form-group">
+                        <label for="customerNamePickup">Name *</label>
+                        <input type="text" id="customerNamePickup" required maxlength="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerPhonePickup">Phone *</label>
+                        <input type="tel" id="customerPhonePickup" required maxlength="10" placeholder="10-digit number">
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-light); margin-top: 12px;">
+                        ✓ We'll notify you when your order is ready for pickup at our kitchen.
+                    </p>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <label class="form-section-title">Payment</label>
+                <div class="upi-section">
+                    <div class="upi-label">Send payment via UPI to:</div>
+                    <div class="upi-id" id="upiDisplay">••••••••••</div>
+                </div>
+                <div class="proof-upload">
+                    <label for="proofFile">Upload Payment Screenshot *</label>
+                    <input type="file" id="proofFile" accept="image/*" required>
+                    <div class="file-hint">Upload a screenshot of your UPI payment confirmation</div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="goBackToStore()">← Back to Menu</button>
+                <button class="btn btn-primary" id="submitBtn" onclick="submitOrder()">Place Order</button>
             </div>
         </div>
     </div>
@@ -525,8 +710,8 @@
 
         let allProducts = [];
         let cart = {};
-
-        // Category icons/emojis for visual interest
+        let deliveryType = 'delivery';
+        const MASKED_UPI = '••••••••••'; // Placeholder until we load from admin settings
         const categoryIcons = {
             cakes: '🍰',
             idli: '🥘',
@@ -547,7 +732,6 @@
                         data.id = doc.id;
                         allProducts.push(data);
                     });
-
                     displayProducts(allProducts);
                 }, error => {
                     document.getElementById('productsContainer').innerHTML = 
@@ -562,14 +746,12 @@
                 return;
             }
 
-            // Group by category
             const byCategory = {};
             products.forEach(p => {
                 if (!byCategory[p.category]) byCategory[p.category] = [];
                 byCategory[p.category].push(p);
             });
 
-            // Sort categories and products within each
             const categories = Object.keys(byCategory).sort();
             let html = '';
 
@@ -639,10 +821,10 @@
         }
 
         function updateCartDisplay() {
-            const cartItemsContainer = document.getElementById('cartItems');
             const cartCount = Object.keys(cart).length;
             document.getElementById('cartCount').textContent = cartCount;
 
+            const cartItemsContainer = document.getElementById('cartItems');
             if (cartCount === 0) {
                 cartItemsContainer.innerHTML = '<div class="cart-empty">Cart is empty</div>';
                 document.getElementById('subtotal').textContent = '₹0';
@@ -682,9 +864,164 @@
             cartSidebar.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        function proceedToCheckout() {
-            // Stage 4 — placeholder for now
-            alert('Checkout coming in Stage 4! Your cart: ' + JSON.stringify(cart));
+        // ============================================================
+        // CHECKOUT FLOW
+        // ============================================================
+        function startCheckout() {
+            updateCheckoutSummary();
+            document.getElementById('storeView').classList.remove('active');
+            document.getElementById('checkoutView').classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateCheckoutSummary() {
+            let html = '';
+            let total = 0;
+
+            Object.keys(cart).forEach(productId => {
+                const product = allProducts.find(p => p.id === productId);
+                if (!product) return;
+
+                const qty = cart[productId];
+                const lineTotal = product.price * qty;
+                total += lineTotal;
+
+                html += `
+                    <div class="summary-item">
+                        <span>${product.name} × ${qty}</span>
+                        <span>₹${lineTotal}</span>
+                    </div>
+                `;
+            });
+
+            document.getElementById('checkoutSummaryItems').innerHTML = html;
+            document.getElementById('checkoutTotal').textContent = '₹' + total;
+        }
+
+        function setDeliveryType(type) {
+            deliveryType = type;
+            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const addressSection = document.getElementById('addressSection');
+            const pickupSection = document.getElementById('pickupSection');
+
+            if (type === 'delivery') {
+                addressSection.classList.remove('hidden');
+                pickupSection.classList.add('hidden');
+            } else {
+                addressSection.classList.add('hidden');
+                pickupSection.classList.remove('hidden');
+            }
+        }
+
+        function goBackToStore() {
+            document.getElementById('checkoutView').classList.remove('active');
+            document.getElementById('storeView').classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ============================================================
+        // ORDER SUBMISSION
+        // ============================================================
+        function submitOrder() {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Placing order...';
+
+            // Build line items
+            const lineItems = [];
+            let orderTotal = 0;
+
+            Object.keys(cart).forEach(productId => {
+                const product = allProducts.find(p => p.id === productId);
+                if (!product) return;
+
+                const qty = cart[productId];
+                const lineTotal = product.price * qty;
+                orderTotal += lineTotal;
+
+                lineItems.push({
+                    productId: product.id,
+                    name: product.name,
+                    unitPrice: product.price,
+                    quantity: qty,
+                    lineTotal: lineTotal
+                });
+            });
+
+            // Collect customer data
+            let customerName, customerPhone;
+            if (deliveryType === 'delivery') {
+                customerName = document.getElementById('customerName').value.trim();
+                customerPhone = document.getElementById('customerPhone').value.trim();
+
+                if (!customerName || !customerPhone || !document.getElementById('customerAddress').value.trim() || !document.getElementById('customerPincode').value.trim()) {
+                    alert('Please fill in all delivery details');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Place Order';
+                    return;
+                }
+            } else {
+                customerName = document.getElementById('customerNamePickup').value.trim();
+                customerPhone = document.getElementById('customerPhonePickup').value.trim();
+
+                if (!customerName || !customerPhone) {
+                    alert('Please enter your name and phone number');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Place Order';
+                    return;
+                }
+            }
+
+            const proofFile = document.getElementById('proofFile').files[0];
+            if (!proofFile) {
+                alert('Please upload a payment screenshot');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Place Order';
+                return;
+            }
+
+            // Read proof file as base64
+            const reader = new FileReader();
+            reader.onload = () => {
+                const orderId = 'ORD' + Date.now() + Math.floor(Math.random() * 1000);
+                
+                const orderData = {
+                    orderId: orderId,
+                    timestamp: new Date(),
+                    deliveryType: deliveryType,
+                    customerName: customerName,
+                    customerPhone: customerPhone,
+                    lineItems: lineItems,
+                    orderTotal: orderTotal,
+                    proofBase64: reader.result,
+                    status: 'pending_approval',
+                    notes: deliveryType === 'delivery' 
+                        ? (document.getElementById('customerAddress').value.trim() + ', ' + document.getElementById('customerPincode').value.trim())
+                        : 'Pickup order'
+                };
+
+                db.collection('orders').doc(orderId).set(orderData)
+                    .then(() => {
+                        // Clear cart
+                        cart = {};
+                        updateCartDisplay();
+                        
+                        // Show confirmation
+                        alert('✓ Order placed!\n\nOrder ID: ' + orderId + '\n\nWe\'ll review your payment and confirm shortly.');
+                        
+                        goBackToStore();
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Place Order';
+                    })
+                    .catch(err => {
+                        alert('Error placing order: ' + err.message);
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Place Order';
+                    });
+            };
+            reader.readAsDataURL(proofFile);
         }
 
         // ============================================================
