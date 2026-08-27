@@ -646,6 +646,14 @@
             border-color: var(--primary-orange);
         }
 
+        .form-group input:disabled, .form-group textarea:disabled {
+            background-color: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+            border-color: #ddd;
+            opacity: 0.6;
+        }
+
         .hidden { display: none !important; }
 
         .delivery-charge-box {
@@ -1460,6 +1468,11 @@
         }
 
         function unlockOrderFields() {
+            document.getElementById('customerName').disabled = false;
+            document.getElementById('customerPhone').disabled = false;
+            document.getElementById('customerEmail').disabled = false;
+            document.getElementById('customerAddress').disabled = false;
+            document.getElementById('customerPincode').disabled = false;
             document.getElementById('customerName').removeAttribute('readonly');
             document.getElementById('customerPhone').removeAttribute('readonly');
             document.getElementById('customerEmail').removeAttribute('readonly');
@@ -1468,6 +1481,7 @@
             
             // Enable delivery type toggle
             document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.disabled = false;
                 btn.removeAttribute('disabled');
                 btn.style.opacity = '';
                 btn.style.cursor = '';
@@ -1487,10 +1501,24 @@
             isSearchingOrder = false;
             unlockOrderFields();
             
+            // Clear all customer form fields
+            document.getElementById('customerName').value = '';
+            document.getElementById('customerPhone').value = '';
+            document.getElementById('customerEmail').value = '';
+            document.getElementById('customerAddress').value = '';
+            document.getElementById('customerPincode').value = '';
+            document.getElementById('proofFile').value = '';
+            
             // Clear search form
             document.getElementById('searchOrderId').value = '';
             document.getElementById('searchError').textContent = '';
             document.getElementById('searchError').style.display = 'none';
+            
+            // Reset delivery type and cart
+            deliveryCharge = 0;
+            deliveryType = 'delivery';
+            cart = {};
+            updateCartDisplay();
             
             switchView('storeView');
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1610,6 +1638,14 @@
                     
                     // Disable Place Order button
                     document.getElementById('placeOrderBtn').disabled = true;
+                    
+                    // Disable form fields during payment
+                    document.getElementById('customerName').disabled = true;
+                    document.getElementById('customerPhone').disabled = true;
+                    document.getElementById('customerEmail').disabled = true;
+                    document.getElementById('customerAddress').disabled = true;
+                    document.getElementById('customerPincode').disabled = true;
+                    
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 })
                 .catch(err => {
