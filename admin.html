@@ -7,58 +7,299 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #ff9a56 0%, #d4622a 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #fff5f0 0%, #f0f8f5 100%);
             min-height: 100vh;
-            padding: 20px;
         }
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            background: white;
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(135deg, #ff9a56 0%, #d4622a 100%);
+            color: white;
+            padding: 30px 20px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 4px 0 12px rgba(212, 98, 42, 0.2);
+        }
+
+        .sidebar-logo {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-logo img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-menu button {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: left;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .sidebar-menu button:hover {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+        }
+
+        .sidebar-menu button.active {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .user-name {
+            flex: 1;
+            font-size: 13px;
+        }
+
+        .user-email {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .logout-btn {
+            background: #ff4757 !important;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #ff3838 !important;
+        }
+
+        .main-content {
+            margin-left: 280px;
             padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            min-height: 100vh;
         }
+
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #d4622a;
+            margin-bottom: 40px;
             padding-bottom: 20px;
+            border-bottom: 2px solid rgba(212, 98, 42, 0.1);
         }
-        h1 { color: #d4622a; font-size: 26px; }
-        .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; }
-        .logout-btn:hover { background: #c82333; }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-logo {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff9a56 0%, #d4622a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        .login-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ff9a56 0%, #d4622a 50%, #28a745 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .login-box {
+            background: white;
+            padding: 50px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border-top: 4px solid #28a745;
+        }
+
+        .login-box h2 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff9a56 0%, #d4622a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .login-box-logo {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            object-fit: contain;
+        }
+
+        .login-box p {
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #1e1e2e;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #d4622a;
+            box-shadow: 0 0 0 3px rgba(212, 98, 42, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #ff9a56 0%, #d4622a 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(212, 98, 42, 0.25);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(212, 98, 42, 0.4);
+        }
 
         /* TABS */
         .tabs {
             display: flex;
-            gap: 20px;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #eee;
+            gap: 30px;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #e8e8f0;
         }
+
         .tab-btn {
-            padding: 12px 24px;
+            padding: 12px 0;
             background: none;
             border: none;
-            color: #666;
-            font-size: 16px;
+            color: #888;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             border-bottom: 3px solid transparent;
             transition: all 0.3s;
             margin-bottom: -2px;
         }
+
+        .tab-btn:hover {
+            color: #1e1e2e;
+        }
+
         .tab-btn.active {
             color: #d4622a;
             border-bottom-color: #d4622a;
         }
+
         .tab-content {
             display: none;
         }
+
         .tab-content.active {
             display: block;
         }
@@ -66,77 +307,173 @@
         /* ANALYTICS CARDS */
         .analytics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
+
         .analytics-card {
-            background: linear-gradient(135deg, #f5f5f5 0%, #efefef 100%);
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #d4622a;
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            border: 2px solid #e8e8f0;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            position: relative;
+            overflow: hidden;
         }
+
+        .analytics-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff9a56 0%, #d4622a 50%, #28a745 100%);
+        }
+
+        .analytics-card:hover {
+            border-color: #d4622a;
+            box-shadow: 0 12px 32px rgba(212, 98, 42, 0.2);
+            transform: translateY(-6px);
+        }
+
         .analytics-card h3 {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 10px;
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 12px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            font-weight: 600;
         }
+
         .analytics-card .value {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 700;
-            color: #d4622a;
+            background: linear-gradient(135deg, #ff9a56 0%, #d4622a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
         }
-        .analytics-card .subtext {
-            font-size: 12px;
-            color: #999;
-            margin-top: 8px;
+
+        .analytics-card .icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
 
         /* CHARTS */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
         .chart-container {
-            position: relative;
-            height: 300px;
-            margin-bottom: 30px;
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #e8e8f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .chart-container h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e1e2e;
+            margin-bottom: 20px;
+        }
+
+        .chart-container canvas {
+            max-height: 280px;
         }
 
         /* TABLES */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e8e8f0;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .table-header {
+            padding: 24px;
+            border-bottom: 1px solid #e8e8f0;
+        }
+
+        .table-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e1e2e;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
             font-size: 14px;
         }
+
         th {
-            background: #f5f5f5;
-            padding: 12px;
+            background: #f8f9fa;
+            padding: 12px 24px;
             text-align: left;
             font-weight: 600;
-            border-bottom: 2px solid #ddd;
+            color: #666;
+            border-bottom: 1px solid #e8e8f0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
             color: #333;
         }
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
+
+        tr:hover { background: #f8f9fa; }
+
+        tr:last-child td { border-bottom: none; }
+
+        .search-box {
+            padding: 24px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e8e8f0;
+            margin-bottom: 20px;
         }
-        tr:hover { background: #f9f9f9; }
+
+        .search-box input {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px 16px;
+            border: 2px solid #e8e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #d4622a;
+        }
 
         .status-badge {
             display: inline-block;
-            padding: 4px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
             font-weight: 600;
             font-size: 12px;
         }
-        .status-pending_payment { background: #fff3cd; color: #856404; }
-        .status-payment_proof_submitted { background: #cfe2ff; color: #084298; }
-        .status-paid { background: #d1e7dd; color: #0f5132; }
-        .status-dispute { background: #f8d7da; color: #842029; }
-        .status-cancelled { background: #e2e3e5; color: #383d41; }
+
+        .status-pending_payment { background: linear-gradient(135deg, #fff5e6 0%, #ffe6cc 100%); color: #b87e00; }
+        .status-payment_proof_submitted { background: linear-gradient(135deg, #e6f2ff 0%, #cce5ff 100%); color: #0052cc; }
+        .status-paid { background: linear-gradient(135deg, #e6f7f0 0%, #cce6e0 100%); color: #006644; }
+        .status-dispute { background: linear-gradient(135deg, #ffe6e6 0%, #ffcccc 100%); color: #cc0000; }
+        .status-cancelled { background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%); color: #444; }
 
         /* MODAL */
         .modal {
@@ -147,268 +484,390 @@
             width: 100%;
             height: 100%;
             background: rgba(0,0,0,0.5);
-            z-index: 1000;
+            z-index: 2000;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
+
         .modal.show {
             display: flex;
         }
+
         .modal-content {
             background: white;
-            padding: 30px;
-            border-radius: 12px;
+            padding: 40px;
+            border-radius: 16px;
             max-width: 700px;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
         }
+
         .modal-header {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 700;
-            color: #333;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 15px;
-        }
-        .modal-section {
-            margin-bottom: 20px;
+            color: #1e1e2e;
+            margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 2px solid #e8e8f0;
         }
+
+        .modal-section {
+            margin-bottom: 28px;
+            padding-bottom: 28px;
+            border-bottom: 1px solid #e8e8f0;
+        }
+
         .modal-section h3 {
             font-size: 14px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 10px;
+            font-weight: 700;
+            color: #1e1e2e;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #888;
         }
+
         .modal-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             font-size: 14px;
         }
+
         .modal-row strong {
-            color: #333;
+            color: #1e1e2e;
+            font-weight: 600;
         }
+
         .payment-proof {
-            max-width: 300px;
-            margin: 15px 0;
+            max-width: 100%;
+            margin: 16px 0;
             border-radius: 8px;
-            border: 2px solid #ddd;
+            border: 2px solid #e8e8f0;
         }
+
         .action-buttons {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             flex-wrap: wrap;
             margin-top: 20px;
         }
+
         .action-buttons button {
             padding: 10px 16px;
             font-size: 13px;
             flex: 1;
-            min-width: 120px;
-        }
-        .btn-whatsapp {
-            background: #25d366 !important;
-        }
-        .btn-whatsapp:hover {
-            background: #1fb346 !important;
-        }
-        .btn-email {
-            background: #0275d8 !important;
-        }
-        .btn-email:hover {
-            background: #025aa5 !important;
-        }
-        .btn-dispute {
-            background: #ffc107 !important;
-            color: #333 !important;
-        }
-        .btn-cancel {
-            background: #dc3545 !important;
+            min-width: 130px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
         }
 
-        .form-group {
-            margin-bottom: 15px;
+        .btn-primary {
+            background: linear-gradient(135deg, #ff9a56 0%, #d4622a 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(212, 98, 42, 0.2);
         }
-        .form-group label {
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(212, 98, 42, 0.35);
+        }
+
+        .btn-whatsapp {
+            background: #25d366;
+            color: white;
+        }
+
+        .btn-whatsapp:hover {
+            background: #1fb346;
+            transform: translateY(-2px);
+        }
+
+        .btn-email {
+            background: #0275d8;
+            color: white;
+        }
+
+        .btn-email:hover {
+            background: #025aa5;
+            transform: translateY(-2px);
+        }
+
+        .btn-dispute {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-cancel {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .form-group-modal {
+            margin-bottom: 16px;
+        }
+
+        .form-group-modal label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: 600;
             font-size: 13px;
         }
-        .form-group textarea {
+
+        .form-group-modal textarea {
             width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 4px;
+            padding: 10px 12px;
+            border: 2px solid #e8e8f0;
+            border-radius: 6px;
             font-family: inherit;
             resize: vertical;
+            font-size: 13px;
+        }
+
+        .form-group-modal textarea:focus {
+            outline: none;
+            border-color: #d4622a;
         }
 
         .hidden { display: none !important; }
-        button { padding: 8px 16px; background: #d4622a; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
-        button:hover { background: #b34f1f; }
-        input { padding: 8px 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px; }
-        input:focus { outline: none; border-color: #d4622a; }
+
+        button {
+            font-family: inherit;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+                padding: 15px 10px;
+            }
+
+            .sidebar-logo {
+                font-size: 16px;
+            }
+
+            .sidebar-menu button {
+                padding: 10px 8px;
+                font-size: 0;
+            }
+
+            .main-content {
+                margin-left: 70px;
+                padding: 20px;
+            }
+
+            .analytics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- LOGIN -->
-        <div id="loginView">
-            <div class="header">
-                <h1>🍰 Cynthia's Kitchen — Admin</h1>
+    <!-- LOGIN VIEW -->
+    <div id="loginView" class="login-container">
+        <div class="login-box">
+            <img src="https://i.ibb.co/23Xm42hf/cynthias-kitchen-logo.png" alt="Logo" class="login-box-logo">
+            <h2>Cynthia's Kitchen</h2>
+            <p>Admin Dashboard</p>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="adminEmail" placeholder="your@email.com" autocomplete="email">
             </div>
-            <div style="max-width: 400px; margin: 60px auto; text-align: center;">
-                <h2 style="color: #333; margin-bottom: 30px;">Admin Login</h2>
-                <div style="margin-bottom: 15px;">
-                    <input type="email" id="adminEmail" placeholder="Email" autocomplete="email">
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password">
+            </div>
+            <button class="login-btn" onclick="loginAdmin()">Sign In</button>
+        </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="dashboardView" class="hidden" style="display: flex;">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <img src="https://i.ibb.co/23Xm42hf/cynthias-kitchen-logo.png" alt="Cynthia's Kitchen">
+                <span>Cynkit</span>
+            </div>
+            <div class="sidebar-menu">
+                <button class="active" onclick="switchTab('analytics')">📊 Analytics</button>
+                <button onclick="switchTab('orders')">📋 Orders</button>
+            </div>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="userInitial">A</div>
+                    <div>
+                        <div class="user-name" id="adminName">Admin</div>
+                        <div class="user-email">Online</div>
+                    </div>
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <input type="password" id="adminPassword" placeholder="Password" autocomplete="current-password">
-                </div>
-                <button onclick="loginAdmin()" style="width: 100%; padding: 12px;">Login</button>
+                <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
         </div>
 
-        <!-- DASHBOARD -->
-        <div id="dashboardView" class="hidden">
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
             <div class="header">
-                <h1>🍰 Cynthia's Kitchen — Admin Dashboard</h1>
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <span id="adminName" style="color: #666; font-weight: 600;"></span>
-                    <button class="logout-btn" onclick="logout()">Logout</button>
+                <div class="header-left">
+                    <img src="https://i.ibb.co/23Xm42hf/cynthias-kitchen-logo.png" alt="Logo" class="header-logo">
+                    <h1>Dashboard</h1>
                 </div>
-            </div>
-
-            <!-- TABS -->
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('analytics')">📊 Analytics</button>
-                <button class="tab-btn" onclick="switchTab('orders')">📋 Orders</button>
             </div>
 
             <!-- ANALYTICS TAB -->
             <div id="analytics" class="tab-content active">
-                <h2 style="color: #333; margin-bottom: 20px;">Dashboard Analytics</h2>
-
-                <!-- MTD SUMMARY -->
-                <div style="margin-bottom: 30px;">
-                    <h3 style="color: #333; margin-bottom: 15px;">📅 MTD (Month-to-Date) Summary</h3>
+                <!-- MTD SECTION -->
+                <div style="margin-bottom: 50px;">
+                    <h2 style="font-size: 18px; font-weight: 700; color: #1e1e2e; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 3px solid #28a745;">📅 This Month (MTD)</h2>
                     <div class="analytics-grid">
                         <div class="analytics-card">
-                            <h3>📦 Total Orders</h3>
+                            <div class="icon">📦</div>
+                            <h3>Total Orders</h3>
                             <div class="value" id="mtdOrders">0</div>
                         </div>
                         <div class="analytics-card">
-                            <h3>💰 Order Value</h3>
+                            <div class="icon">💰</div>
+                            <h3>Order Value</h3>
                             <div class="value" id="mtdValue">₹0</div>
                         </div>
                         <div class="analytics-card">
-                            <h3>🚚 Delivery Charges</h3>
+                            <div class="icon">🚚</div>
+                            <h3>Delivery Charges</h3>
                             <div class="value" id="mtdDelivery">₹0</div>
                         </div>
                         <div class="analytics-card">
-                            <h3>✅ Paid Orders</h3>
+                            <div class="icon">✅</div>
+                            <h3>Paid Orders</h3>
                             <div class="value" id="mtdPaid">0</div>
                         </div>
                         <div class="analytics-card">
-                            <h3>⏳ Proof Submitted</h3>
+                            <div class="icon">⏳</div>
+                            <h3>Proof Submitted</h3>
                             <div class="value" id="mtdProof">0</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- TODAY SUMMARY -->
-                <div style="margin-bottom: 30px;">
-                    <h3 style="color: #333; margin-bottom: 15px;">📆 Today's Summary</h3>
+                <!-- TODAY SECTION -->
+                <div style="margin-bottom: 50px;">
+                    <h2 style="font-size: 18px; font-weight: 700; color: #1e1e2e; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 3px solid #28a745;">📆 Today</h2>
                     <div class="analytics-grid">
                         <div class="analytics-card">
-                            <h3>📦 Total Orders</h3>
+                            <div class="icon">📦</div>
+                            <h3>Total Orders</h3>
                             <div class="value" id="todayOrders">0</div>
                         </div>
                         <div class="analytics-card">
-                            <h3>💰 Order Value</h3>
+                            <div class="icon">💰</div>
+                            <h3>Order Value</h3>
                             <div class="value" id="todayValue">₹0</div>
                         </div>
                         <div class="analytics-card">
-                            <h3>🚚 Delivery Charges</h3>
+                            <div class="icon">🚚</div>
+                            <h3>Delivery Charges</h3>
                             <div class="value" id="todayDelivery">₹0</div>
                         </div>
                         <div class="analytics-card">
-                            <h3>✅ Paid Orders</h3>
+                            <div class="icon">✅</div>
+                            <h3>Paid Orders</h3>
                             <div class="value" id="todayPaid">0</div>
                         </div>
                         <div class="analytics-card">
-                            <h3>⏳ Proof Submitted</h3>
+                            <div class="icon">⏳</div>
+                            <h3>Proof Submitted</h3>
                             <div class="value" id="todayProof">0</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- CHARTS -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                <div class="charts-grid">
                     <div class="chart-container">
-                        <h3 style="margin-bottom: 15px;">🚚 Delivery vs Pickup (MTD %)</h3>
+                        <h3>🚚 Delivery vs Pickup (MTD)</h3>
                         <canvas id="deliveryChart"></canvas>
                     </div>
                     <div class="chart-container">
-                        <h3 style="margin-bottom: 15px;">📦 Product Order Mix (MTD %)</h3>
+                        <h3>📦 Top Products (MTD)</h3>
                         <canvas id="productsChart"></canvas>
                     </div>
                 </div>
 
                 <!-- REPEAT CUSTOMERS -->
-                <h3 style="color: #333; margin-bottom: 15px;">🔄 Repeat Customers (MTD - 3+ Orders)</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Customer Name</th>
-                            <th>Phone</th>
-                            <th>Email</th>
-                            <th>Orders</th>
-                            <th>Total Value (₹)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="repeatCustomersTable">
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>🔄 Repeat Customers (3+ Orders MTD)</h3>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Orders</th>
+                                <th>Total (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="repeatCustomersTable">
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- ORDERS TAB -->
             <div id="orders" class="tab-content">
-                <h2 style="color: #333; margin-bottom: 20px;">Orders Management</h2>
-                <div style="margin-bottom: 20px;">
-                    <input type="text" id="orderSearch" placeholder="🔍 Search by name or phone..." style="width: 100%; max-width: 400px;">
+                <div class="search-box">
+                    <input type="text" id="orderSearch" placeholder="🔍 Search by name or phone...">
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Customer</th>
-                            <th>Phone</th>
-                            <th>Total (₹)</th>
-                            <th>Status</th>
-                            <th>Delivery</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersTable">
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Phone</th>
+                                <th>Total (₹)</th>
+                                <th>Status</th>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th style="text-align: right; padding-right: 40px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTable">
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ORDER DETAIL MODAL -->
+    <!-- ORDER MODAL -->
     <div id="orderModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">Order Details</div>
 
-            <!-- Order Info -->
             <div class="modal-section">
                 <div class="modal-row">
                     <strong>Order ID:</strong>
@@ -424,9 +883,8 @@
                 </div>
             </div>
 
-            <!-- Customer Info -->
             <div class="modal-section">
-                <h3>Customer Details</h3>
+                <h3>👤 Customer Details</h3>
                 <div class="modal-row">
                     <strong>Name:</strong>
                     <span id="modalCustomerName"></span>
@@ -440,7 +898,7 @@
                     <span id="modalCustomerEmail"></span>
                 </div>
                 <div class="modal-row">
-                    <strong>Delivery Type:</strong>
+                    <strong>Delivery:</strong>
                     <span id="modalDeliveryType"></span>
                 </div>
                 <div class="modal-row">
@@ -449,86 +907,79 @@
                 </div>
             </div>
 
-            <!-- Items -->
             <div class="modal-section">
-                <h3>Items Ordered</h3>
-                <div id="modalItems"></div>
+                <h3>📦 Items</h3>
+                <div id="modalItems" style="font-size: 13px;"></div>
             </div>
 
-            <!-- Order Totals -->
             <div class="modal-section">
                 <div class="modal-row">
                     <strong>Subtotal:</strong>
                     <span id="modalSubtotal">₹0</span>
                 </div>
                 <div class="modal-row">
-                    <strong>Delivery Charge:</strong>
+                    <strong>Delivery:</strong>
                     <span id="modalDeliveryCharge">₹0</span>
                 </div>
-                <div class="modal-row" style="border-top: 1px solid #ddd; padding-top: 10px; margin-top: 10px; font-size: 16px;">
-                    <strong>Total Amount:</strong>
+                <div class="modal-row" style="border-top: 2px solid #e8e8f0; padding-top: 12px; margin-top: 12px; font-size: 16px;">
+                    <strong>Total:</strong>
                     <span id="modalTotal" style="font-weight: 700; color: #d4622a;"></span>
                 </div>
             </div>
 
-            <!-- Payment Proof -->
             <div class="modal-section" id="proofSection">
-                <h3>Payment Proof</h3>
+                <h3>💳 Payment Proof</h3>
                 <img id="paymentProofImage" class="payment-proof" style="display: none;">
-                <span id="noProofMessage" style="color: #999;">No payment proof uploaded</span>
+                <span id="noProofMessage" style="color: #999; font-size: 13px;">No payment proof uploaded</span>
             </div>
 
-            <!-- Status Update Actions -->
             <div class="modal-section">
-                <h3>Update Order Status</h3>
+                <h3>⚙️ Update Status</h3>
                 <div class="action-buttons">
-                    <button onclick="markAsPaid()">✅ Mark as Paid</button>
-                    <button class="btn-dispute" onclick="showDisputeForm()">⚠️ Mark Dispute</button>
-                    <button class="btn-cancel" onclick="showCancelForm()">❌ Cancel Order</button>
+                    <button class="btn-primary" onclick="markAsPaid()">✅ Mark Paid</button>
+                    <button class="btn-dispute" onclick="showDisputeForm()">⚠️ Dispute</button>
+                    <button class="btn-cancel" onclick="showCancelForm()">❌ Cancel</button>
                 </div>
 
-                <!-- Dispute Form -->
-                <div id="disputeForm" style="display: none; background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 15px;">
-                    <div class="form-group">
-                        <label>Dispute Reason (max 80 characters):</label>
-                        <textarea id="disputeReason" maxlength="80" rows="3" placeholder="Explain the dispute..."></textarea>
-                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                <div id="disputeForm" style="display: none; background: #fff5e6; padding: 16px; border-radius: 8px; margin-top: 16px; border: 1px solid #ffd699;">
+                    <div class="form-group-modal">
+                        <label>Dispute Reason (max 80)</label>
+                        <textarea id="disputeReason" maxlength="80" rows="3"></textarea>
+                        <div style="font-size: 12px; color: #666; margin-top: 6px;">
                             <span id="disputeCharCount">0</span>/80
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button onclick="submitDispute()">Submit Dispute</button>
-                        <button style="background: #666;" onclick="hideDisputeForm()">Cancel</button>
+                        <button class="btn-primary" onclick="submitDispute()">Submit</button>
+                        <button class="btn-secondary" onclick="hideDisputeForm()">Cancel</button>
                     </div>
                 </div>
 
-                <!-- Cancel Form -->
-                <div id="cancelForm" style="display: none; background: #e2e3e5; padding: 15px; border-radius: 8px; margin-top: 15px;">
-                    <div class="form-group">
-                        <label>Cancellation Reason (max 80 characters):</label>
-                        <textarea id="cancellationReason" maxlength="80" rows="3" placeholder="Why cancelling..."></textarea>
-                        <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                <div id="cancelForm" style="display: none; background: #ffe6e6; padding: 16px; border-radius: 8px; margin-top: 16px; border: 1px solid #ffb3b3;">
+                    <div class="form-group-modal">
+                        <label>Cancellation Reason (max 80)</label>
+                        <textarea id="cancellationReason" maxlength="80" rows="3"></textarea>
+                        <div style="font-size: 12px; color: #666; margin-top: 6px;">
                             <span id="cancelCharCount">0</span>/80
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn-cancel" onclick="submitCancellation()">Confirm Cancellation</button>
-                        <button style="background: #666;" onclick="hideCancelForm()">Cancel</button>
+                        <button class="btn-cancel" onclick="submitCancellation()">Confirm</button>
+                        <button class="btn-secondary" onclick="hideCancelForm()">Cancel</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Communication Actions -->
             <div class="modal-section">
-                <h3>Send Communications</h3>
+                <h3>💬 Send Message</h3>
                 <div class="action-buttons">
-                    <button class="btn-whatsapp" onclick="sendWhatsApp()">💬 Send WhatsApp</button>
-                    <button class="btn-email" onclick="sendEmail()">📧 Send Email</button>
+                    <button class="btn-whatsapp" onclick="sendWhatsApp()">💬 WhatsApp</button>
+                    <button class="btn-email" onclick="sendEmail()">📧 Email</button>
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-                <button style="background: #666;" onclick="closeModal()">Close</button>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn-secondary" onclick="closeModal()">Close</button>
             </div>
         </div>
     </div>
@@ -558,7 +1009,6 @@
         let currentOrder = null;
         let deliveryChart, productsChart;
 
-        // ============ AUTHENTICATION ============
         function loginAdmin() {
             const email = document.getElementById('adminEmail').value;
             const password = document.getElementById('adminPassword').value;
@@ -571,7 +1021,7 @@
             auth.signInWithEmailAndPassword(email, password)
                 .then(userCredential => {
                     if (userCredential.user.uid !== ADMIN_UID) {
-                        alert('Access denied. Admin only.');
+                        alert('Access denied');
                         auth.signOut();
                         return;
                     }
@@ -584,34 +1034,38 @@
         function logout() {
             auth.signOut().then(() => {
                 currentUser = null;
-                document.getElementById('loginView').classList.remove('hidden');
-                document.getElementById('dashboardView').classList.add('hidden');
-                document.getElementById('adminEmail').value = '';
-                document.getElementById('adminPassword').value = '';
+                document.getElementById('loginView').style.display = 'flex';
+                document.getElementById('dashboardView').style.display = 'none';
             });
         }
 
         function showDashboard() {
-            document.getElementById('loginView').classList.add('hidden');
-            document.getElementById('dashboardView').classList.remove('hidden');
-            document.getElementById('adminName').textContent = currentUser.email;
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('dashboardView').style.display = 'flex';
+            document.getElementById('adminName').textContent = currentUser.email.split('@')[0];
+            document.getElementById('userInitial').textContent = currentUser.email.charAt(0).toUpperCase();
             loadData();
         }
 
-        // ============ TAB SWITCHING ============
+        // Format currency - remove trailing zeros and show whole numbers cleanly
+        const formatCurrency = (num) => {
+            const rounded = Math.round(num * 100) / 100;
+            return rounded % 1 === 0 ? Math.round(rounded).toString() : rounded.toFixed(2);
+        };
+
         function switchTab(tab) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tab).classList.add('active');
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                if ((tab === 'analytics' && btn.textContent.includes('Analytics')) ||
-                    (tab === 'orders' && btn.textContent.includes('Orders'))) {
-                    btn.classList.add('active');
-                }
-            });
+            document.querySelectorAll('.sidebar-menu button').forEach(el => el.classList.remove('active'));
+            
+            if (tab === 'analytics') {
+                document.getElementById('analytics').classList.add('active');
+                document.querySelectorAll('.sidebar-menu button')[0].classList.add('active');
+            } else {
+                document.getElementById('orders').classList.add('active');
+                document.querySelectorAll('.sidebar-menu button')[1].classList.add('active');
+            }
         }
 
-        // ============ LOAD DATA ============
         function loadData() {
             loadOrders();
         }
@@ -627,18 +1081,16 @@
                     populateOrdersTable();
                 })
                 .catch(err => {
-                    console.error('Error loading orders:', err);
+                    console.error('Error:', err);
                     alert('Error loading orders: ' + err.message);
                 });
         }
 
-        // ============ ANALYTICS ============
         function updateAnalytics() {
             const today = new Date().toDateString();
             const mtdStart = new Date();
             mtdStart.setDate(1);
 
-            // Filter MTD and Today orders
             const mtdOrders = allOrders.filter(o => {
                 if (!o.timestamp) return false;
                 const orderDate = new Date(o.timestamp.toDate());
@@ -650,31 +1102,28 @@
                 return new Date(o.timestamp.toDate()).toDateString() === today;
             });
 
-            // MTD Summary
             const mtdValue = mtdOrders.reduce((sum, o) => sum + (o.orderTotal || 0), 0);
             const mtdDelivery = mtdOrders.reduce((sum, o) => sum + (o.deliveryCharge || 0), 0);
             const mtdPaid = mtdOrders.filter(o => o.status === 'paid').length;
             const mtdProof = mtdOrders.filter(o => o.status === 'payment_proof_submitted' || o.status === 'payment_submitted').length;
 
             document.getElementById('mtdOrders').textContent = mtdOrders.length;
-            document.getElementById('mtdValue').textContent = '₹' + mtdValue;
-            document.getElementById('mtdDelivery').textContent = '₹' + mtdDelivery;
+            document.getElementById('mtdValue').textContent = '₹' + formatCurrency(mtdValue);
+            document.getElementById('mtdDelivery').textContent = '₹' + formatCurrency(mtdDelivery);
             document.getElementById('mtdPaid').textContent = mtdPaid;
             document.getElementById('mtdProof').textContent = mtdProof;
 
-            // Today Summary
             const todayValue = todayOrders.reduce((sum, o) => sum + (o.orderTotal || 0), 0);
             const todayDelivery = todayOrders.reduce((sum, o) => sum + (o.deliveryCharge || 0), 0);
             const todayPaid = todayOrders.filter(o => o.status === 'paid').length;
             const todayProof = todayOrders.filter(o => o.status === 'payment_proof_submitted' || o.status === 'payment_submitted').length;
 
             document.getElementById('todayOrders').textContent = todayOrders.length;
-            document.getElementById('todayValue').textContent = '₹' + todayValue;
-            document.getElementById('todayDelivery').textContent = '₹' + todayDelivery;
+            document.getElementById('todayValue').textContent = '₹' + formatCurrency(todayValue);
+            document.getElementById('todayDelivery').textContent = '₹' + formatCurrency(todayDelivery);
             document.getElementById('todayPaid').textContent = todayPaid;
             document.getElementById('todayProof').textContent = todayProof;
 
-            // Repeat Customers (same phone + email, 3+ orders)
             const customers = {};
             mtdOrders.forEach(order => {
                 const key = order.customerPhone + '|' + order.customerEmail;
@@ -702,17 +1151,15 @@
                     <td>${c.phone}</td>
                     <td>${c.email}</td>
                     <td>${c.orders}</td>
-                    <td>₹${c.amount}</td>
+                    <td>₹${formatCurrency(c.amount)}</td>
                 </tr>
             `).join('');
-            document.getElementById('repeatCustomersTable').innerHTML = repeatHtml || '<tr><td colspan="6" style="text-align: center; color: #999;">No repeat customers yet</td></tr>';
+            document.getElementById('repeatCustomersTable').innerHTML = repeatHtml || '<tr><td colspan="6" style="text-align: center; color: #999;">No repeat customers</td></tr>';
 
-            // Charts
             drawCharts(mtdOrders);
         }
 
         function drawCharts(mtdOrders) {
-            // Delivery vs Pickup
             const pickup = mtdOrders.filter(o => o.deliveryType === 'pickup').length;
             const delivery = mtdOrders.filter(o => o.deliveryType === 'delivery').length;
             const total = pickup + delivery || 1;
@@ -727,10 +1174,13 @@
                         data: [pickup, delivery],
                         backgroundColor: ['#ff9a56', '#d4622a']
                     }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true
                 }
             });
 
-            // Product Mix
             const productCounts = {};
             mtdOrders.forEach(order => {
                 if (order.lineItems) {
@@ -744,23 +1194,26 @@
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 10);
 
-            const totalItems = Object.values(productCounts).reduce((a, b) => a + b, 0) || 1;
-
             if (productsChart) productsChart.destroy();
             const productsCtx = document.getElementById('productsChart').getContext('2d');
             productsChart = new Chart(productsCtx, {
-                type: 'doughnut',
+                type: 'bar',
                 data: {
-                    labels: topProducts.map(p => `${p[0]} ${Math.round((p[1]/totalItems)*100)}%`),
+                    labels: topProducts.map(p => p[0]),
                     datasets: [{
+                        label: 'Orders',
                         data: topProducts.map(p => p[1]),
-                        backgroundColor: ['#ff9a56', '#d4622a', '#ffc107', '#28a745', '#0275d8', '#6f42c1', '#fd7e14', '#20c997', '#e83e8c', '#6c757d']
+                        backgroundColor: '#d4622a'
                     }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    indexAxis: 'y'
                 }
             });
         }
 
-        // ============ ORDERS TABLE ============
         function populateOrdersTable() {
             const tbody = document.getElementById('ordersTable');
             tbody.innerHTML = allOrders.map(order => `
@@ -768,11 +1221,11 @@
                     <td><strong>${order.orderId}</strong></td>
                     <td>${order.customerName}</td>
                     <td>${order.customerPhone}</td>
-                    <td>₹${order.orderTotal}</td>
-                    <td><span class="status-badge status-${order.status}">${order.status.replace(/_/g, ' ').toUpperCase()}</span></td>
-                    <td>${order.deliveryType === 'pickup' ? '🏪 Pickup' : '🚚 Delivery'}</td>
+                    <td>₹${formatCurrency(order.orderTotal)}</td>
+                    <td><span class="status-badge status-${order.status}">${order.status.replace(/_/g, ' ')}</span></td>
+                    <td>${order.deliveryType === 'pickup' ? '🏪' : '🚚'}</td>
                     <td>${order.timestamp ? new Date(order.timestamp.toDate()).toLocaleDateString() : '-'}</td>
-                    <td><button onclick="openOrderModal('${order.id}')">View</button></td>
+                    <td style="text-align: right;"><button class="btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="openOrderModal('${order.id}')">View</button></td>
                 </tr>
             `).join('');
 
@@ -785,7 +1238,6 @@
             });
         }
 
-        // ============ ORDER MODAL ============
         function openOrderModal(docId) {
             currentOrderId = docId;
             currentOrder = allOrders.find(o => o.id === docId);
@@ -793,27 +1245,24 @@
 
             document.getElementById('modalOrderId').textContent = currentOrder.orderId;
             document.getElementById('modalDate').textContent = currentOrder.timestamp ? new Date(currentOrder.timestamp.toDate()).toLocaleString() : '-';
-            document.getElementById('modalStatus').textContent = currentOrder.status.replace(/_/g, ' ').toUpperCase();
+            document.getElementById('modalStatus').innerHTML = `<span class="status-badge status-${currentOrder.status}">${currentOrder.status.replace(/_/g, ' ')}</span>`;
             document.getElementById('modalCustomerName').textContent = currentOrder.customerName;
             document.getElementById('modalCustomerPhone').textContent = currentOrder.customerPhone;
             document.getElementById('modalCustomerEmail').textContent = currentOrder.customerEmail;
             document.getElementById('modalDeliveryType').textContent = currentOrder.deliveryType === 'pickup' ? '🏪 Pickup' : '🚚 Delivery';
             document.getElementById('modalAddress').textContent = currentOrder.deliveryAddress || '-';
 
-            // Items
             const itemsHtml = currentOrder.lineItems.map(item => `
-                <div style="padding: 8px 0; border-bottom: 1px solid #eee; font-size: 13px;">
-                    ${item.name} × ${item.quantity} @ ₹${item.unitPrice} = <strong>₹${item.lineTotal}</strong>
+                <div style="padding: 8px 0; border-bottom: 1px solid #e8e8f0;">
+                    ${item.name} × ${item.quantity} @ ₹${formatCurrency(item.unitPrice)} = <strong>₹${formatCurrency(item.lineTotal)}</strong>
                 </div>
             `).join('');
             document.getElementById('modalItems').innerHTML = itemsHtml;
 
-            // Totals
-            document.getElementById('modalSubtotal').textContent = '₹' + (currentOrder.subtotal || 0);
-            document.getElementById('modalDeliveryCharge').textContent = '₹' + (currentOrder.deliveryCharge || 0);
-            document.getElementById('modalTotal').textContent = '₹' + currentOrder.orderTotal;
+            document.getElementById('modalSubtotal').textContent = '₹' + formatCurrency(currentOrder.subtotal || 0);
+            document.getElementById('modalDeliveryCharge').textContent = '₹' + formatCurrency(currentOrder.deliveryCharge || 0);
+            document.getElementById('modalTotal').textContent = '₹' + formatCurrency(currentOrder.orderTotal);
 
-            // Payment Proof
             if (currentOrder.proofBase64) {
                 document.getElementById('paymentProofImage').src = currentOrder.proofBase64;
                 document.getElementById('paymentProofImage').style.display = 'block';
@@ -823,10 +1272,8 @@
                 document.getElementById('noProofMessage').style.display = 'block';
             }
 
-            // Hide forms
             hideDisputeForm();
             hideCancelForm();
-
             document.getElementById('orderModal').classList.add('show');
         }
 
@@ -836,11 +1283,10 @@
             currentOrder = null;
         }
 
-        // ============ STATUS UPDATES ============
         function markAsPaid() {
             db.collection('orders').doc(currentOrderId).update({ status: 'paid' })
                 .then(() => {
-                    alert('✓ Order marked as paid');
+                    alert('✓ Marked as paid');
                     closeModal();
                     loadOrders();
                 })
@@ -870,7 +1316,7 @@
         function submitDispute() {
             const reason = document.getElementById('disputeReason').value.trim();
             if (!reason) {
-                alert('Please enter dispute reason');
+                alert('Please enter reason');
                 return;
             }
             db.collection('orders').doc(currentOrderId).update({
@@ -886,36 +1332,32 @@
         function submitCancellation() {
             const reason = document.getElementById('cancellationReason').value.trim();
             if (!reason) {
-                alert('Please enter cancellation reason');
+                alert('Please enter reason');
                 return;
             }
             db.collection('orders').doc(currentOrderId).update({
                 status: 'cancelled',
                 cancellationReason: reason
             }).then(() => {
-                alert('✓ Order cancelled');
+                alert('✓ Cancelled');
                 closeModal();
                 loadOrders();
             });
         }
 
-        // ============ COMMUNICATIONS ============
         function sendWhatsApp() {
             const phone = currentOrder.customerPhone;
-            const message = `Hi ${currentOrder.customerName}, regarding your order ${currentOrder.orderId} (₹${currentOrder.orderTotal}). Status: ${currentOrder.status.replace(/_/g, ' ')}`;
-            const whatsappUrl = `https://wa.me/91${phone}?text=${encodeURIComponent(message)}`;
-            window.open(whatsappUrl, '_blank');
+            const message = `Hi ${currentOrder.customerName}, regarding your order ${currentOrder.orderId} (₹${formatCurrency(currentOrder.orderTotal)}). Status: ${currentOrder.status.replace(/_/g, ' ')}`;
+            window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(message)}`, '_blank');
         }
 
         function sendEmail() {
             const email = currentOrder.customerEmail;
             const subject = `Order ${currentOrder.orderId} - Status Update`;
-            const body = `Hi ${currentOrder.customerName},\n\nThank you for your order with Cynthia's Kitchen.\n\nOrder ID: ${currentOrder.orderId}\nTotal: ₹${currentOrder.orderTotal}\nStatus: ${currentOrder.status.replace(/_/g, ' ')}\n\nRegards,\nCynthia's Kitchen`;
-            const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            window.open(mailtoUrl);
+            const body = `Hi ${currentOrder.customerName},\n\nThank you for your order with Cynthia's Kitchen.\n\nOrder ID: ${currentOrder.orderId}\nTotal: ₹${formatCurrency(currentOrder.orderTotal)}\nStatus: ${currentOrder.status.replace(/_/g, ' ')}\n\nRegards,\nCynthia's Kitchen`;
+            window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
         }
 
-        // Character counters
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('disputeReason').addEventListener('input', (e) => {
                 document.getElementById('disputeCharCount').textContent = e.target.value.length;
@@ -925,7 +1367,6 @@
             });
         });
 
-        // Auto-login if already authenticated
         auth.onAuthStateChanged(user => {
             if (user && user.uid === ADMIN_UID) {
                 currentUser = user;
