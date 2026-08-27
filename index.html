@@ -1377,10 +1377,15 @@
             
             // Show Place Order button (hide payment sections)
             document.getElementById('placeOrderBtn').style.display = 'block';
+            document.getElementById('placeOrderBtn').disabled = false;
             document.getElementById('qrSection').classList.remove('show');
             document.getElementById('payBtn').classList.remove('show');
             document.getElementById('proofSection').classList.remove('show');
             document.getElementById('submitProofBtn').classList.remove('show');
+            
+            // Hide old delivery charge displays
+            document.getElementById('deliveryChargeBox').classList.remove('show');
+            document.getElementById('deliveryChargeLine').style.display = 'none';
             
             updateOrderSummary();
             switchView('checkoutView');
