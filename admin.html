@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cynkit — Admin Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #ff9a56 0%, #d4622a 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #d4622a;
+            padding-bottom: 20px;
+        }
+        h1 { color: #d4622a; font-size: 26px; }
+        .header-right { display: flex; gap: 15px; align-items: center; }
+        .login-form { display: flex; gap: 10px; align-items: center; }
+        .login-form input {
+            padding: 8px 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px;
+        }
+        .login-form input:focus { outline: none; border-color: #d4622a; }
+        button {
+            padding: 8px 20px; background: #d4622a; color: white; border: none;
+            border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 14px;
+            transition: background 0.2s;
+        }
+        button:hover { background: #b34f1f; }
+        button.secondary { background: #666; }
+        button.secondary:hover { background: #555; }
+        button.danger { background: #dc3545; }
+        button.danger:hover { background: #c82333; }
+        .logout-btn { background: #dc3545; }
+        .logout-btn:hover { background: #c82333; }
+
+        /* Login error box lives OUTSIDE the dashboard so it's visible
+           even while the dashboard itself is display:none */
+        .error-message {
+            background: #f8d7da; color: #721c24; padding: 15px; border-radius: 6px;
+            margin-bottom: 20px; display: none; font-size: 14px;
+        }
+        .success-message {
+            background: #d4edda; color: #155724; padding: 15px; border-radius: 6px;
+            margin-bottom: 20px; display: none; font-size: 14px;
+        }
+
+        .dashboard { display: none; }
+        .dashboard.active { display: block; }
+
+        .card {
+            background: #fafafa; border: 1px solid #eee; border-radius: 10px;
+            padding: 25px; margin-bottom: 25px;
+        }
+        .card h2 { color: #333; font-size: 18px; margin-bottom: 20px; }
+
+        .form-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;
+        }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full-width { grid-column: 1 / -1; }
+        .form-group label { font-size: 13px; font-weight: 600; color: #555; }
+        .form-group input, .form-group textarea {
+            padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px;
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none; border-color: #d4622a;
+        }
+        .form-group textarea { resize: vertical; min-height: 60px; }
+        .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
+        .checkbox-row input { width: 18px; height: 18px; }
+        .form-actions { display: flex; gap: 10px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th {
+            background: #f5f5f5; padding: 10px; text-align: left; font-weight: 600;
+            color: #333; border-bottom: 2px solid #ddd; font-size: 13px;
+        }
+        td { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+        tr:hover { background: #fafafa; }
+
+        .status-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 4px;
+            font-size: 12px; font-weight: 600;
+        }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-inactive { background: #f8d7da; color: #721c24; }
+
+        .action-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+        .action-btns button { padding: 5px 10px; font-size: 12px; }
+
+        .category-group { margin-bottom: 30px; }
+        .category-title {
+            font-size: 15px; font-weight: 700; color: #d4622a; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 10px; padding-bottom: 6px;
+            border-bottom: 2px solid #ffe4d1;
+        }
+
+        .loading { text-align: center; padding: 30px; color: #999; }
+        #loginSection.hidden, #dashboard.hidden { display: none; }
+
+        @media (max-width: 700px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .header { flex-direction: column; gap: 15px; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ Cynkit — Admin Dashboard</h1>
+            <div class="header-right">
+                <div class="login-form" id="loginForm">
+                    <input type="email" id="emailInput" placeholder="Admin Email" autocomplete="username">
+                    <input type="password" id="passwordInput" placeholder="Admin Password" autocomplete="current-password">
+                    <button onclick="login()">Login</button>
+                </div>
+                <button class="logout-btn" id="logoutBtn" onclick="logout()" style="display: none;">Logout</button>
+            </div>
+        </div>
+
+        <!-- Login error box — always visible, not nested inside .dashboard -->
+        <div class="error-message" id="loginErrorMessage"></div>
+
+        <div class="dashboard" id="dashboard">
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+
+            <!-- Add / Edit Product Form -->
+            <div class="card">
+                <h2 id="formTitle">➕ Add New Product</h2>
+                <form id="productForm" onsubmit="saveProduct(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="pName">Product Name *</label>
+                            <input type="text" id="pName" required maxlength="150">
+                        </div>
+                        <div class="form-group">
+                            <label for="pCategory">Category *</label>
+                            <input type="text" id="pCategory" required maxlength="50" placeholder="e.g. cakes, idli, appam, puttu">
+                        </div>
+                        <div class="form-group">
+                            <label for="pUnitLabel">Unit / Size Label *</label>
+                            <input type="text" id="pUnitLabel" required maxlength="50" placeholder="e.g. 250g, 3 idlis, 1 puttu">
+                        </div>
+                        <div class="form-group">
+                            <label for="pPrice">Price (₹) *</label>
+                            <input type="number" id="pPrice" required min="1" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="pSortOrder">Sort Order (lower shows first)</label>
+                            <input type="number" id="pSortOrder" min="0" step="1" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="pImageUrl">Photo URL (optional)</label>
+                            <input type="text" id="pImageUrl" maxlength="500" placeholder="https://... (paste a link to a photo)">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="pDescription">Description (optional)</label>
+                            <textarea id="pDescription" maxlength="500"></textarea>
+                        </div>
+                    </div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="pActive" checked>
+                        <label for="pActive">Active (visible to customers)</label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" id="saveBtn">Add Product</button>
+                        <button type="button" class="secondary" id="cancelBtn" onclick="cancelEdit()" style="display: none;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Product List -->
+            <div class="card">
+                <h2>📋 All Products</h2>
+                <div id="loadingMessage" class="loading">Loading products...</div>
+                <div id="productsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5YQFMqDtSkoOCyAtCwW7DTxk9l7e7umQ",
+            authDomain: "cynkit.firebaseapp.com",
+            projectId: "cynkit",
+            storageBucket: "cynkit.firebasestorage.app",
+            messagingSenderId: "830918868359",
+            appId: "1:830918868359:web:7288ec552409c0d4236722"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        let allProducts = [];
+        let editingId = null; // null = add mode, otherwise = editing this doc ID
+
+        // ============================================================
+        // AUTH
+        // ============================================================
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                showDashboard();
+            } else {
+                showLoginScreen();
+            }
+        });
+
+        function showDashboard() {
+            hideLoginError();
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'block';
+            document.getElementById('dashboard').classList.add('active');
+            loadProducts();
+        }
+
+        function showLoginScreen() {
+            document.getElementById('loginForm').style.display = 'flex';
+            document.getElementById('logoutBtn').style.display = 'none';
+            document.getElementById('dashboard').classList.remove('active');
+            allProducts = [];
+        }
+
+        function login() {
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            hideLoginError();
+
+            if (!email || !password) {
+                showLoginError('Please enter both email and password');
+                return;
+            }
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    document.getElementById('passwordInput').value = '';
+                })
+                .catch(err => {
+                    showLoginError('Login failed: ' + err.code + ' — ' + err.message);
+                });
+        }
+
+        function logout() {
+            auth.signOut();
+        }
+
+        function showLoginError(message) {
+            const el = document.getElementById('loginErrorMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+        }
+
+        function hideLoginError() {
+            const el = document.getElementById('loginErrorMessage');
+            el.style.display = 'none';
+            el.textContent = '';
+        }
+
+        // ============================================================
+        // LOAD & DISPLAY PRODUCTS
+        // ============================================================
+        function loadProducts() {
+            document.getElementById('loadingMessage').style.display = 'block';
+
+            db.collection('products').onSnapshot(snapshot => {
+                allProducts = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    data.id = doc.id;
+                    allProducts.push(data);
+                });
+
+                // Group by category, sort within each category by sortOrder
+                allProducts.sort((a, b) => {
+                    if (a.category !== b.category) return a.category.localeCompare(b.category);
+                    return (a.sortOrder || 0) - (b.sortOrder || 0);
+                });
+
+                displayProducts(allProducts);
+                document.getElementById('loadingMessage').style.display = 'none';
+            }, error => {
+                document.getElementById('loadingMessage').textContent = 'Error loading products: ' + error.message;
+            });
+        }
+
+        function displayProducts(products) {
+            const container = document.getElementById('productsContainer');
+            container.innerHTML = '';
+
+            if (products.length === 0) {
+                container.innerHTML = '<p style="color:#999;">No products yet — add your first one above.</p>';
+                return;
+            }
+
+            // Group by category
+            const byCategory = {};
+            products.forEach(p => {
+                if (!byCategory[p.category]) byCategory[p.category] = [];
+                byCategory[p.category].push(p);
+            });
+
+            Object.keys(byCategory).sort().forEach(category => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'category-group';
+
+                const title = document.createElement('div');
+                title.className = 'category-title';
+                title.textContent = category;
+                groupDiv.appendChild(title);
+
+                const table = document.createElement('table');
+                const thead = document.createElement('thead');
+                thead.innerHTML = '<tr><th>Name</th><th>Unit</th><th>Price</th><th>Status</th><th>Actions</th></tr>';
+                table.appendChild(thead);
+
+                const tbody = document.createElement('tbody');
+                byCategory[category].forEach(product => {
+                    const row = document.createElement('tr');
+
+                    const nameCell = document.createElement('td');
+                    nameCell.textContent = product.name;
+                    row.appendChild(nameCell);
+
+                    const unitCell = document.createElement('td');
+                    unitCell.textContent = product.unitLabel || '';
+                    row.appendChild(unitCell);
+
+                    const priceCell = document.createElement('td');
+                    priceCell.textContent = '₹' + (product.price || 0).toLocaleString();
+                    row.appendChild(priceCell);
+
+                    const statusCell = document.createElement('td');
+                    const badge = document.createElement('span');
+                    badge.className = 'status-badge ' + (product.active ? 'status-active' : 'status-inactive');
+                    badge.textContent = product.active ? 'Active' : 'Inactive';
+                    statusCell.appendChild(badge);
+                    row.appendChild(statusCell);
+
+                    const actionsCell = document.createElement('td');
+                    actionsCell.className = 'action-btns';
+
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edit';
+                    editBtn.addEventListener('click', () => startEdit(product));
+                    actionsCell.appendChild(editBtn);
+
+                    const toggleBtn = document.createElement('button');
+                    toggleBtn.className = 'secondary';
+                    toggleBtn.textContent = product.active ? 'Deactivate' : 'Activate';
+                    toggleBtn.addEventListener('click', () => toggleActive(product.id, product.active));
+                    actionsCell.appendChild(toggleBtn);
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'danger';
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.addEventListener('click', () => deleteProduct(product.id, product.name));
+                    actionsCell.appendChild(deleteBtn);
+
+                    row.appendChild(actionsCell);
+                    tbody.appendChild(row);
+                });
+
+                table.appendChild(tbody);
+                groupDiv.appendChild(table);
+                container.appendChild(groupDiv);
+            });
+        }
+
+        // ============================================================
+        // ADD / EDIT PRODUCT
+        // ============================================================
+        function saveProduct(event) {
+            event.preventDefault();
+
+            const data = {
+                name: document.getElementById('pName').value.trim(),
+                category: document.getElementById('pCategory').value.trim().toLowerCase(),
+                unitLabel: document.getElementById('pUnitLabel').value.trim(),
+                price: parseInt(document.getElementById('pPrice').value, 10),
+                sortOrder: parseInt(document.getElementById('pSortOrder').value, 10) || 0,
+                imageUrl: document.getElementById('pImageUrl').value.trim(),
+                description: document.getElementById('pDescription').value.trim(),
+                active: document.getElementById('pActive').checked
+            };
+
+            if (!data.name || !data.category || !data.unitLabel || !data.price) {
+                showError('Please fill in all required fields (Name, Category, Unit, Price)');
+                return;
+            }
+
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            const promise = editingId
+                ? db.collection('products').doc(editingId).update(data)
+                : db.collection('products').add(data);
+
+            promise
+                .then(() => {
+                    showSuccess(editingId ? 'Product updated!' : 'Product added!');
+                    cancelEdit(); // resets form back to "Add" mode
+                })
+                .catch(err => {
+                    showError('Error saving product: ' + err.message);
+                })
+                .finally(() => {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = editingId ? 'Update Product' : 'Add Product';
+                });
+        }
+
+        function startEdit(product) {
+            editingId = product.id;
+            document.getElementById('pName').value = product.name || '';
+            document.getElementById('pCategory').value = product.category || '';
+            document.getElementById('pUnitLabel').value = product.unitLabel || '';
+            document.getElementById('pPrice').value = product.price || '';
+            document.getElementById('pSortOrder').value = product.sortOrder || 0;
+            document.getElementById('pImageUrl').value = product.imageUrl || '';
+            document.getElementById('pDescription').value = product.description || '';
+            document.getElementById('pActive').checked = !!product.active;
+
+            document.getElementById('formTitle').textContent = '✏️ Edit Product: ' + product.name;
+            document.getElementById('saveBtn').textContent = 'Update Product';
+            document.getElementById('cancelBtn').style.display = 'inline-block';
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            editingId = null;
+            document.getElementById('productForm').reset();
+            document.getElementById('pActive').checked = true;
+            document.getElementById('pSortOrder').value = 1;
+            document.getElementById('formTitle').textContent = '➕ Add New Product';
+            document.getElementById('saveBtn').textContent = 'Add Product';
+            document.getElementById('cancelBtn').style.display = 'none';
+        }
+
+        function toggleActive(productId, currentActive) {
+            db.collection('products').doc(productId).update({ active: !currentActive })
+                .then(() => {
+                    showSuccess('Product ' + (!currentActive ? 'activated' : 'deactivated') + '!');
+                })
+                .catch(err => {
+                    showError('Error updating product: ' + err.message);
+                });
+        }
+
+        function deleteProduct(productId, productName) {
+            if (!confirm('Delete "' + productName + '"? This cannot be undone.')) return;
+
+            db.collection('products').doc(productId).delete()
+                .then(() => {
+                    showSuccess('Product deleted.');
+                })
+                .catch(err => {
+                    showError('Error deleting product: ' + err.message);
+                });
+        }
+
+        // ============================================================
+        // MESSAGES
+        // ============================================================
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+        }
+
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 4000);
+        }
+    </script>
+</body>
+</html>
