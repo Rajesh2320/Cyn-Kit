@@ -1368,8 +1368,14 @@
 
         function setDeliveryType(type) {
             deliveryType = type;
-            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                if ((type === 'delivery' && btn.textContent.includes('Delivery')) || 
+                    (type === 'pickup' && btn.textContent.includes('Pickup'))) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
 
             const addressSection = document.getElementById('addressSection');
             const pickupSection = document.getElementById('pickupSection');
