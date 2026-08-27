@@ -48,6 +48,7 @@
             justify-content: space-between;
             align-items: center;
             gap: 12px;
+            flex-wrap: wrap;
         }
 
         .logo-section {
@@ -77,11 +78,21 @@
             letter-spacing: -0.5px;
         }
 
-        .tagline {
-            font-size: 10px;
-            color: var(--text-light);
-            font-weight: 500;
-            letter-spacing: 0.2px;
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 480px) {
+            .header-buttons {
+                gap: 6px;
+            }
+            .cart-badge {
+                padding: 6px 8px !important;
+                font-size: 11px !important;
+            }
         }
 
         .cart-badge {
@@ -480,27 +491,43 @@
            ============================================================ */
         .checkout-wrapper {
             display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 30px;
+            grid-template-columns: 1fr;
+            gap: 20px;
             max-width: 1400px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 20px;
         }
 
         .checkout-container {
             background: white;
             border-radius: 10px;
-            padding: 30px;
+            padding: 20px;
         }
 
         .checkout-sidebar {
-            position: sticky;
-            top: 100px;
-            height: fit-content;
             background: linear-gradient(135deg, rgba(31, 143, 31, 0.1) 0%, rgba(31, 143, 31, 0.05) 100%);
             border-radius: 10px;
             padding: 20px;
             border: 2px solid var(--accent-green);
+            position: static;
+            top: auto;
+            height: auto;
+        }
+
+        @media (min-width: 768px) {
+            .checkout-wrapper {
+                grid-template-columns: 1fr 380px;
+                gap: 30px;
+                padding: 40px 20px;
+            }
+            .checkout-container {
+                padding: 30px;
+            }
+            .checkout-sidebar {
+                position: sticky;
+                top: 100px;
+                height: fit-content;
+            }
         }
 
         .checkout-title {
@@ -804,9 +831,14 @@
                     <div class="tagline">From our home to yours</div>
                 </div>
             </div>
-            <button class="cart-badge" id="cartBadge" onclick="scrollToCart()">
-                🛒 <span id="cartCount">0</span> items
-            </button>
+            <div class="header-buttons">
+                <button class="cart-badge" id="cartBadge" onclick="scrollToCart()">
+                    🛒 <span id="cartCount">0</span> items
+                </button>
+                <button class="cart-badge" style="background: var(--accent-green);" onclick="switchView('orderSearchView')">
+                    🔍 Search & Pay
+                </button>
+            </div>
         </div>
     </header>
 
@@ -888,6 +920,7 @@
                         <div class="form-group">
                             <label for="customerPincode">Pincode *</label>
                             <input type="text" id="customerPincode" maxlength="6" placeholder="6-digit pincode" pattern="[0-9]*" inputmode="numeric" onblur="validatePincode()">
+                            <div class="error-message" id="pincodeError"></div>
                         </div>
                         <div class="delivery-charge-box" id="deliveryChargeBox">
                             <div class="delivery-charge-label">Delivery Charge:</div>
@@ -1060,23 +1093,35 @@
         function validatePincode() {
             const pincode = document.getElementById('customerPincode').value.trim();
             const deliveryChargeBox = document.getElementById('deliveryChargeBox');
+            const pincodeField = document.getElementById('customerPincode').parentElement;
+            const pincodeError = document.getElementById('pincodeError');
 
             if (!pincode) {
                 deliveryChargeBox.classList.remove('show');
+                pincodeError.classList.remove('show');
+                pincodeField.classList.remove('error');
                 return;
             }
 
             if (!/^\d{6}$/.test(pincode)) {
                 deliveryChargeBox.classList.remove('show');
+                pincodeError.classList.remove('show');
+                pincodeField.classList.remove('error');
                 return;
             }
 
             if (!pincodeData[pincode]) {
+                // Show error immediately
+                pincodeError.textContent = 'The pin code is currently not serviceable by us. We apologize for the inconvenience caused';
+                pincodeError.classList.add('show');
+                pincodeField.classList.add('error');
                 deliveryChargeBox.classList.remove('show');
                 return;
             }
 
             // Valid pincode - calculate and show delivery charge
+            pincodeError.classList.remove('show');
+            pincodeField.classList.remove('error');
             calculateDeliveryCharge();
         }
 
@@ -1395,7 +1440,7 @@
                 }
 
                 if (!pincodeData[pincode]) {
-                    alert('⚠️ We don\'t deliver to this pincode yet.\n\nServiceable pincodes: 600001-600130, 603103, 603202\n\nPlease choose an area within our service zone.');
+                    alert('⚠️ The pin code is currently not serviceable by us.\n\nWe apologize for the inconvenience caused.\n\nPlease try a different delivery location.');
                     return;
                 }
             }
