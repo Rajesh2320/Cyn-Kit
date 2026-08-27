@@ -1291,7 +1291,7 @@
         }
 
         function updateCartDisplay() {
-            const cartCount = Object.keys(cart).length;
+            const cartCount = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
             document.getElementById('cartCount').textContent = cartCount;
 
             const cartItemsContainer = document.getElementById('cartItems');
