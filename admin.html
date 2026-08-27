@@ -797,6 +797,14 @@
 
             <!-- ANALYTICS TAB -->
             <div id="analytics" class="tab-content active">
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 40px;">
+                    <div style="font-size: 40px;">🍰</div>
+                    <div>
+                        <h2 style="font-size: 28px; font-weight: 700; color: #1e1e2e; margin: 0;">Analytics</h2>
+                        <p style="color: #888; font-size: 14px; margin: 4px 0 0 0;">Track your sales performance</p>
+                    </div>
+                </div>
+                
                 <!-- MTD SECTION -->
                 <div style="margin-bottom: 40px;">
                     <h2 style="font-size: 18px; font-weight: 700; color: #1e1e2e; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 3px solid #28a745;">📅 This Month (MTD)</h2>
@@ -907,6 +915,14 @@
 
             <!-- ORDERS TAB -->
             <div id="orders" class="tab-content">
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 30px;">
+                    <div style="font-size: 40px;">🍰</div>
+                    <div>
+                        <h2 style="font-size: 28px; font-weight: 700; color: #1e1e2e; margin: 0;">Orders</h2>
+                        <p style="color: #888; font-size: 14px; margin: 4px 0 0 0;">Manage customer orders</p>
+                    </div>
+                </div>
+                
                 <div class="search-box">
                     <input type="text" id="orderSearch" placeholder="🔍 Search by name or phone...">
                 </div>
@@ -932,23 +948,27 @@
 
             <!-- PRODUCTS TAB -->
             <div id="products" class="tab-content">
-                <div style="margin-bottom: 50px;">
-                    <h2 style="font-size: 24px; font-weight: 700; color: #1e1e2e; margin-bottom: 6px;">📦 Manage Products</h2>
-                    <p style="color: #888; font-size: 14px;">Add, edit, or manage your product catalog</p>
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 40px;">
+                    <div style="font-size: 40px;">🍰</div>
+                    <div>
+                        <h2 style="font-size: 28px; font-weight: 700; color: #1e1e2e; margin: 0;">Products</h2>
+                        <p style="color: #888; font-size: 14px; margin: 4px 0 0 0;">Add, edit, or manage your product catalog</p>
+                    </div>
                 </div>
 
                 <!-- TWO COLUMN LAYOUT -->
                 <div style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 40px; align-items: start;">
                     
                     <!-- LEFT: ADD FORM -->
-                    <div style="background: linear-gradient(135deg, #fff8f3 0%, #fffbf7 100%); padding: 40px; border-radius: 16px; border: 2px solid #d4622a; box-shadow: 0 4px 12px rgba(212, 98, 42, 0.08); height: fit-content;">
+                    <div style="background: linear-gradient(135deg, #fcfbf9 0%, #fefdfb 100%); padding: 40px; border-radius: 16px; border: 2px solid #d4622a; box-shadow: 0 4px 12px rgba(212, 98, 42, 0.08); height: fit-content;">
                         <h3 style="color: #d4622a; margin-bottom: 28px; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
                             <span style="font-size: 24px;">➕</span> Add New Product
                         </h3>
                         
                         <div style="margin-bottom: 22px;">
                             <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #1e1e2e;">Product ID</label>
-                            <input type="text" id="productId" placeholder="cake-ninja-plum" style="width: 100%; padding: 12px 14px; border: 2px solid #d4622a20; border-radius: 8px; font-size: 13px; box-sizing: border-box; background: white;">
+                            <input type="text" id="productId" placeholder="cake-ninja-plum" oninput="validateProductId(this)" style="width: 100%; padding: 12px 14px; border: 2px solid #d4622a20; border-radius: 8px; font-size: 13px; box-sizing: border-box; background: white;">
+                            <div id="idValidationMsg" style="display: none; margin-top: 6px; font-size: 12px; font-weight: 500;"></div>
                         </div>
 
                         <div style="margin-bottom: 22px;">
@@ -1630,6 +1650,32 @@
             }
         }
 
+        function validateProductId(input) {
+            const id = input.value.trim();
+            const isValid = /^[a-z0-9]+(-[a-z0-9]+)*$/.test(id) && id.length > 0;
+            
+            if (id.length === 0) {
+                // Empty - neutral state
+                input.style.borderColor = '#d4622a20';
+                input.style.boxShadow = 'none';
+                document.getElementById('idValidationMsg').style.display = 'none';
+            } else if (isValid) {
+                // Valid - green
+                input.style.borderColor = '#28a745';
+                input.style.boxShadow = '0 0 0 3px rgba(40, 167, 69, 0.1)';
+                document.getElementById('idValidationMsg').style.display = 'block';
+                document.getElementById('idValidationMsg').innerHTML = '✓ Valid format';
+                document.getElementById('idValidationMsg').style.color = '#28a745';
+            } else {
+                // Invalid - red
+                input.style.borderColor = '#dc3545';
+                input.style.boxShadow = '0 0 0 3px rgba(220, 53, 69, 0.1)';
+                document.getElementById('idValidationMsg').style.display = 'block';
+                document.getElementById('idValidationMsg').innerHTML = '✗ Use lowercase and hyphens only (e.g., cake-ninja-plum)';
+                document.getElementById('idValidationMsg').style.color = '#dc3545';
+            }
+        }
+        
         function addProduct() {
             const id = document.getElementById('productId').value.trim();
             const name = document.getElementById('productName').value.trim();
@@ -1640,6 +1686,14 @@
 
             if (!id || !name || !category || !unit || !price) {
                 alert('Please fill all required fields');
+                return;
+            }
+
+            // Validate Product ID format
+            const isValidId = /^[a-z0-9]+(-[a-z0-9]+)*$/.test(id);
+            if (!isValidId) {
+                alert('Invalid Product ID format.\n\nUse lowercase letters and hyphens only.\nExample: cake-ninja-plum');
+                document.getElementById('productId').focus();
                 return;
             }
 
@@ -1700,11 +1754,18 @@
         }
 
         function toggleProductStatus(id, currentStatus) {
+            const newStatus = !currentStatus;
+            console.log(`Toggling product ${id} from ${currentStatus} to ${newStatus}`);
+            
             db.collection('products').doc(id).update({
-                active: !currentStatus
+                active: newStatus
             }).then(() => {
+                console.log(`✓ Product ${id} status updated to ${newStatus}`);
                 loadProducts();
-            }).catch(err => alert('Error: ' + err.message));
+            }).catch(err => {
+                console.error('Toggle error:', err);
+                alert(`Error updating product: ${err.message}\n\nMake sure you're logged in as admin.`);
+            });
         }
 
         function clearProductForm() {
