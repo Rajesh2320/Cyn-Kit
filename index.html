@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -263,6 +264,7 @@
             border-radius: 10px;
             border: 2px solid var(--primary-orange);
             overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
         }
 
         .cart-header {
@@ -333,7 +335,7 @@
         }
 
         .summary-row.total {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 700;
             color: var(--accent-blue);
             border-top: 1px solid var(--border-light);
@@ -343,35 +345,67 @@
 
         .summary-row.total .price {
             color: var(--primary-orange);
-            font-size: 18px;
+            font-size: 20px;
         }
 
-        .checkout-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
-            color: white;
+        .cart-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .checkout-btn, .clear-btn {
+            flex: 1;
+            padding: 10px;
             border: none;
             border-radius: 6px;
             font-weight: 700;
             cursor: pointer;
-            font-size: 14px;
-            margin-top: 12px;
+            font-size: 13px;
             transition: transform 0.2s;
+        }
+
+        .checkout-btn {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            color: white;
         }
 
         .checkout-btn:hover { transform: translateY(-1px); }
         .checkout-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
+        .clear-btn {
+            background: #f0f0f0;
+            color: var(--text-dark);
+            border: 1px solid var(--border-light);
+        }
+
+        .clear-btn:hover { background: #e0e0e0; }
+
         /* ============================================================
-           CHECKOUT FORM
+           CHECKOUT PAGE LAYOUT
            ============================================================ */
+        .checkout-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
         .checkout-container {
             background: white;
             border-radius: 10px;
             padding: 30px;
-            max-width: 600px;
-            margin: 0 auto;
+        }
+
+        .checkout-sidebar {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+            background: linear-gradient(135deg, rgba(31, 143, 31, 0.1) 0%, rgba(31, 143, 31, 0.05) 100%);
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid var(--accent-green);
         }
 
         .checkout-title {
@@ -380,6 +414,42 @@
             font-weight: 700;
             color: var(--accent-blue);
             margin-bottom: 25px;
+        }
+
+        .checkout-sidebar-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent-green);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .checkout-summary-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(31, 143, 31, 0.2);
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .checkout-summary-item:last-child { border-bottom: none; }
+
+        .checkout-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent-green);
+            padding-top: 10px;
+            margin-top: 10px;
+            border-top: 2px solid var(--accent-green);
+        }
+
+        .checkout-total .amount {
+            font-size: 24px;
         }
 
         .form-section {
@@ -448,69 +518,42 @@
 
         .hidden { display: none; }
 
-        .order-summary {
-            background: #faf8f3;
-            border: 1px solid var(--border-light);
-            border-radius: 6px;
+        .qr-section {
+            text-align: center;
+            background: white;
             padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            padding: 6px 0;
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        .summary-item:last-child { border-bottom: none; }
-
-        .summary-total {
-            display: flex;
-            justify-content: space-between;
-            font-weight: 700;
-            color: var(--accent-blue);
-            padding-top: 8px;
-            margin-top: 8px;
-            border-top: 2px solid var(--border-light);
-        }
-
-        .upi-section {
-            background: #f0f8ff;
-            border: 2px solid var(--accent-blue);
             border-radius: 6px;
-            padding: 15px;
             margin-bottom: 15px;
         }
 
-        .upi-label {
-            font-size: 12px;
-            color: var(--text-light);
-            margin-bottom: 6px;
+        #qrcode {
+            margin: 10px auto;
         }
 
-        .upi-id {
+        .upi-id-display {
             font-family: monospace;
             font-weight: 700;
-            font-size: 18px;
+            font-size: 14px;
             color: var(--accent-blue);
             word-break: break-all;
+            margin: 8px 0;
         }
 
-        .proof-upload {
-            margin-top: 15px;
+        .pay-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--accent-green) 0%, #158015 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: transform 0.2s;
         }
 
-        .proof-upload input {
-            display: block;
-        }
-
-        .file-hint {
-            font-size: 12px;
-            color: var(--text-light);
-            margin-top: 6px;
-        }
+        .pay-btn:hover { transform: translateY(-1px); }
 
         .action-buttons {
             display: flex;
@@ -547,15 +590,17 @@
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .loading { text-align: center; padding: 60px 20px; color: var(--text-light); }
-        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
 
         @media (max-width: 1024px) {
             .container {
                 grid-template-columns: 1fr;
                 gap: 30px;
-                padding: 30px 20px;
             }
             .cart-sidebar { position: static; }
+            .checkout-wrapper {
+                grid-template-columns: 1fr;
+            }
+            .checkout-sidebar { position: static; }
             .products-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
         }
 
@@ -605,89 +650,98 @@
                         <span>Total</span>
                         <span class="price" id="total">₹0</span>
                     </div>
-                    <button class="checkout-btn" id="checkoutBtn" disabled onclick="startCheckout()">
-                        Proceed to Checkout
-                    </button>
+                    <div class="cart-actions">
+                        <button class="checkout-btn" id="checkoutBtn" disabled onclick="startCheckout()">
+                            Checkout
+                        </button>
+                        <button class="clear-btn" onclick="clearCart()">Clear</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="checkout-view" id="checkoutView">
-        <div class="checkout-container">
-            <h1 class="checkout-title">✅ Complete Your Order</h1>
+        <div class="checkout-wrapper">
+            <div class="checkout-container">
+                <h1 class="checkout-title">✅ Complete Your Order</h1>
 
-            <div class="order-summary">
+                <div class="form-section">
+                    <label class="form-section-title">Delivery Method</label>
+                    <div class="delivery-toggle">
+                        <button class="toggle-btn active" onclick="setDeliveryType('delivery')">📦 Delivery</button>
+                        <button class="toggle-btn" onclick="setDeliveryType('pickup')">🏪 Pickup</button>
+                    </div>
+                </div>
+
+                <div id="addressSection">
+                    <div class="form-section">
+                        <label class="form-section-title">Your Details</label>
+                        <div class="form-group">
+                            <label for="customerName">Name *</label>
+                            <input type="text" id="customerName" required maxlength="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="customerPhone">Phone *</label>
+                            <input type="tel" id="customerPhone" required maxlength="10" placeholder="10-digit number">
+                        </div>
+                        <div class="form-group">
+                            <label for="customerAddress">Delivery Address *</label>
+                            <textarea id="customerAddress" required maxlength="200" placeholder="House no, Street, Area"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="customerPincode">Pincode *</label>
+                            <input type="text" id="customerPincode" required maxlength="6" placeholder="6-digit pincode">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pickupSection" class="hidden">
+                    <div class="form-section">
+                        <label class="form-section-title">Pickup Confirmation</label>
+                        <div class="form-group">
+                            <label for="customerNamePickup">Name *</label>
+                            <input type="text" id="customerNamePickup" required maxlength="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="customerPhonePickup">Phone *</label>
+                            <input type="tel" id="customerPhonePickup" required maxlength="10" placeholder="10-digit number">
+                        </div>
+                        <p style="font-size: 13px; color: var(--text-light); margin-top: 12px;">
+                            ✓ We'll notify you when your order is ready for pickup at our kitchen.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <label class="form-section-title">Payment</label>
+                    <div class="form-group">
+                        <label for="proofFile">Upload Payment Screenshot *</label>
+                        <input type="file" id="proofFile" accept="image/*" required>
+                        <div style="font-size: 12px; color: var(--text-light); margin-top: 6px;">Upload a screenshot of your UPI payment confirmation</div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="goBackToStore()">← Back to Menu</button>
+                    <button class="btn btn-primary" id="submitBtn" onclick="submitOrder()">Place Order</button>
+                </div>
+            </div>
+
+            <div class="checkout-sidebar">
+                <h2 class="checkout-sidebar-title">Order Summary</h2>
                 <div id="checkoutSummaryItems"></div>
-                <div class="summary-total">
-                    <span>Total Amount</span>
-                    <span id="checkoutTotal">₹0</span>
+                <div class="checkout-total">
+                    <span>Total</span>
+                    <span class="amount" id="checkoutTotal">₹0</span>
                 </div>
-            </div>
 
-            <div class="form-section">
-                <label class="form-section-title">Delivery Method</label>
-                <div class="delivery-toggle">
-                    <button class="toggle-btn active" onclick="setDeliveryType('delivery')">📦 Delivery</button>
-                    <button class="toggle-btn" onclick="setDeliveryType('pickup')">🏪 Pickup</button>
+                <div class="qr-section">
+                    <div style="font-size: 12px; color: var(--text-light); margin-bottom: 8px;">Scan to pay via UPI:</div>
+                    <div id="qrcode"></div>
+                    <div class="upi-id-display" id="upiIdDisplay">9884908910@hdfc</div>
+                    <button class="pay-btn" onclick="openUPI()">💳 Pay via UPI</button>
                 </div>
-            </div>
-
-            <div id="addressSection">
-                <div class="form-section">
-                    <label class="form-section-title">Your Details</label>
-                    <div class="form-group">
-                        <label for="customerName">Name *</label>
-                        <input type="text" id="customerName" required maxlength="100">
-                    </div>
-                    <div class="form-group">
-                        <label for="customerPhone">Phone *</label>
-                        <input type="tel" id="customerPhone" required maxlength="10" placeholder="10-digit number">
-                    </div>
-                    <div class="form-group">
-                        <label for="customerAddress">Delivery Address *</label>
-                        <textarea id="customerAddress" required maxlength="200" placeholder="House no, Street, Area"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="customerPincode">Pincode *</label>
-                        <input type="text" id="customerPincode" required maxlength="6" placeholder="6-digit pincode">
-                    </div>
-                </div>
-            </div>
-
-            <div id="pickupSection" class="hidden">
-                <div class="form-section">
-                    <label class="form-section-title">Pickup Confirmation</label>
-                    <div class="form-group">
-                        <label for="customerNamePickup">Name *</label>
-                        <input type="text" id="customerNamePickup" required maxlength="100">
-                    </div>
-                    <div class="form-group">
-                        <label for="customerPhonePickup">Phone *</label>
-                        <input type="tel" id="customerPhonePickup" required maxlength="10" placeholder="10-digit number">
-                    </div>
-                    <p style="font-size: 13px; color: var(--text-light); margin-top: 12px;">
-                        ✓ We'll notify you when your order is ready for pickup at our kitchen.
-                    </p>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <label class="form-section-title">Payment</label>
-                <div class="upi-section">
-                    <div class="upi-label">Send payment via UPI to:</div>
-                    <div class="upi-id" id="upiDisplay">••••••••••</div>
-                </div>
-                <div class="proof-upload">
-                    <label for="proofFile">Upload Payment Screenshot *</label>
-                    <input type="file" id="proofFile" accept="image/*" required>
-                    <div class="file-hint">Upload a screenshot of your UPI payment confirmation</div>
-                </div>
-            </div>
-
-            <div class="action-buttons">
-                <button class="btn btn-secondary" onclick="goBackToStore()">← Back to Menu</button>
-                <button class="btn btn-primary" id="submitBtn" onclick="submitOrder()">Place Order</button>
             </div>
         </div>
     </div>
@@ -711,7 +765,9 @@
         let allProducts = [];
         let cart = {};
         let deliveryType = 'delivery';
-        const MASKED_UPI = '••••••••••'; // Placeholder until we load from admin settings
+        let totalAmount = 0;
+        const UPI_ID = '9884908910@hdfc';
+        
         const categoryIcons = {
             cakes: '🍰',
             idli: '🥘',
@@ -820,6 +876,14 @@
             displayProducts(allProducts);
         }
 
+        function clearCart() {
+            if (confirm('Clear your entire cart?')) {
+                cart = {};
+                updateCartDisplay();
+                displayProducts(allProducts);
+            }
+        }
+
         function updateCartDisplay() {
             const cartCount = Object.keys(cart).length;
             document.getElementById('cartCount').textContent = cartCount;
@@ -834,7 +898,7 @@
             }
 
             let html = '';
-            let total = 0;
+            totalAmount = 0;
 
             Object.keys(cart).forEach(productId => {
                 const product = allProducts.find(p => p.id === productId);
@@ -842,7 +906,7 @@
 
                 const qty = cart[productId];
                 const lineTotal = product.price * qty;
-                total += lineTotal;
+                totalAmount += lineTotal;
 
                 html += `
                     <div class="cart-item">
@@ -854,8 +918,8 @@
             });
 
             cartItemsContainer.innerHTML = html;
-            document.getElementById('subtotal').textContent = '₹' + total;
-            document.getElementById('total').textContent = '₹' + total;
+            document.getElementById('subtotal').textContent = '₹' + totalAmount;
+            document.getElementById('total').textContent = '₹' + totalAmount;
             document.getElementById('checkoutBtn').disabled = false;
         }
 
@@ -869,6 +933,7 @@
         // ============================================================
         function startCheckout() {
             updateCheckoutSummary();
+            generateQRCode();
             document.getElementById('storeView').classList.remove('active');
             document.getElementById('checkoutView').classList.add('active');
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -876,7 +941,7 @@
 
         function updateCheckoutSummary() {
             let html = '';
-            let total = 0;
+            totalAmount = 0;
 
             Object.keys(cart).forEach(productId => {
                 const product = allProducts.find(p => p.id === productId);
@@ -884,10 +949,10 @@
 
                 const qty = cart[productId];
                 const lineTotal = product.price * qty;
-                total += lineTotal;
+                totalAmount += lineTotal;
 
                 html += `
-                    <div class="summary-item">
+                    <div class="checkout-summary-item">
                         <span>${product.name} × ${qty}</span>
                         <span>₹${lineTotal}</span>
                     </div>
@@ -895,7 +960,27 @@
             });
 
             document.getElementById('checkoutSummaryItems').innerHTML = html;
-            document.getElementById('checkoutTotal').textContent = '₹' + total;
+            document.getElementById('checkoutTotal').textContent = '₹' + totalAmount;
+        }
+
+        function generateQRCode() {
+            const qrcodeContainer = document.getElementById('qrcode');
+            qrcodeContainer.innerHTML = '';
+            
+            const upiString = `upi://pay?pa=${UPI_ID}&pn=CynthiasKitchen&am=${totalAmount}&tn=Order`;
+            
+            new QRCode(qrcodeContainer, {
+                text: upiString,
+                width: 150,
+                height: 150,
+                colorDark: "#000000",
+                colorLight: "#ffffff"
+            });
+        }
+
+        function openUPI() {
+            const upiString = `upi://pay?pa=${UPI_ID}&pn=CynthiasKitchen&am=${totalAmount}&tn=Order`;
+            window.location.href = upiString;
         }
 
         function setDeliveryType(type) {
@@ -929,28 +1014,21 @@
             submitBtn.disabled = true;
             submitBtn.textContent = 'Placing order...';
 
-            // Build line items
             const lineItems = [];
-            let orderTotal = 0;
-
             Object.keys(cart).forEach(productId => {
                 const product = allProducts.find(p => p.id === productId);
                 if (!product) return;
 
                 const qty = cart[productId];
-                const lineTotal = product.price * qty;
-                orderTotal += lineTotal;
-
                 lineItems.push({
                     productId: product.id,
                     name: product.name,
                     unitPrice: product.price,
                     quantity: qty,
-                    lineTotal: lineTotal
+                    lineTotal: product.price * qty
                 });
             });
 
-            // Collect customer data
             let customerName, customerPhone;
             if (deliveryType === 'delivery') {
                 customerName = document.getElementById('customerName').value.trim();
@@ -982,7 +1060,6 @@
                 return;
             }
 
-            // Read proof file as base64
             const reader = new FileReader();
             reader.onload = () => {
                 const orderId = 'ORD' + Date.now() + Math.floor(Math.random() * 1000);
@@ -994,7 +1071,7 @@
                     customerName: customerName,
                     customerPhone: customerPhone,
                     lineItems: lineItems,
-                    orderTotal: orderTotal,
+                    orderTotal: totalAmount,
                     proofBase64: reader.result,
                     status: 'pending_approval',
                     notes: deliveryType === 'delivery' 
@@ -1004,13 +1081,9 @@
 
                 db.collection('orders').doc(orderId).set(orderData)
                     .then(() => {
-                        // Clear cart
                         cart = {};
                         updateCartDisplay();
-                        
-                        // Show confirmation
                         alert('✓ Order placed!\n\nOrder ID: ' + orderId + '\n\nWe\'ll review your payment and confirm shortly.');
-                        
                         goBackToStore();
                         submitBtn.disabled = false;
                         submitBtn.textContent = 'Place Order';
