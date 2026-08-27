@@ -981,7 +981,7 @@
     <div class="view" id="orderSearchView">
         <div class="order-search-page">
             <div class="order-search-box">
-                <h2 class="order-search-title">Resume Payment</h2>
+                <h2 class="order-search-title">Search & Pay</h2>
                 <div class="form-group">
                     <label for="searchOrderId">Order ID</label>
                     <input type="text" id="searchOrderId" placeholder="e.g., ORD1693484759423" style="margin-bottom: 15px;">
@@ -1549,7 +1549,7 @@
             reader.onload = () => {
                 db.collection('orders').doc(currentOrderId).update({
                     proofBase64: reader.result,
-                    status: 'payment_submitted',
+                    status: 'payment_proof_submitted',
                     paymentSubmittedAt: new Date()
                 })
                 .then(() => {
@@ -1581,8 +1581,34 @@
                     if (doc.exists) {
                         const order = doc.data();
                         currentOrderId = orderId;
-                        
-                        // Display Order ID
+
+                        // Check order status
+                        if (order.status === 'payment_proof_submitted') {
+                            alert('✅ Payment proof received!\n\nOrder ID: ' + orderId + '\n\nWe are reviewing your payment. You will be notified once confirmed.');
+                            return;
+                        }
+
+                        if (order.status === 'paid') {
+                            alert('✅ Order Confirmed!\n\nOrder ID: ' + orderId + '\n\nYour order has been accepted. Tracking details will be sent via SMS/Email.');
+                            return;
+                        }
+
+                        if (order.status === 'dispute') {
+                            alert('⚠️ Order Status: DISPUTE\n\nOrder ID: ' + orderId + '\n\nReason: ' + (order.disputeReason || 'Not specified') + '\n\nPlease contact support for assistance.');
+                            return;
+                        }
+
+                        if (order.status === 'cancelled') {
+                            alert('❌ Order Cancelled\n\nOrder ID: ' + orderId + '\n\nReason: ' + (order.cancellationReason || 'Not specified'));
+                            return;
+                        }
+
+                        if (order.status !== 'pending_payment') {
+                            alert('⚠️ This order cannot be paid at this moment.\n\nOrder ID: ' + orderId + '\n\nStatus: ' + order.status);
+                            return;
+                        }
+
+                        // Status is pending_payment - show payment screen
                         document.getElementById('orderIdDisplay').textContent = currentOrderId;
                         
                         // Populate checkout form
@@ -1621,7 +1647,7 @@
                         switchView('checkoutView');
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     } else {
-                        document.getElementById('searchError').textContent = 'Order not found. Check your Order ID.';
+                        document.getElementById('searchError').textContent = 'Order not found. Please check your Order ID.';
                         document.getElementById('searchError').style.display = 'block';
                     }
                 })
