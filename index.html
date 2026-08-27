@@ -1521,11 +1521,25 @@
             document.getElementById('searchError').textContent = '';
             document.getElementById('searchError').style.display = 'none';
             
-            // Reset delivery type and cart
+            // Reset delivery type and cart - COMPLETELY CLEAR
             deliveryCharge = 0;
             deliveryType = 'delivery';
+            
+            // Clear cart object completely
+            Object.keys(cart).forEach(key => delete cart[key]);
             cart = {};
+            
             updateCartDisplay();
+            
+            // Switch view first
+            switchView('storeView');
+            
+            // Then re-render products with empty cart after a brief moment
+            setTimeout(() => {
+                if (allProducts && allProducts.length > 0) {
+                    displayProducts(allProducts);
+                }
+            }, 10);
             
             // Re-enable Place Order button
             document.getElementById('placeOrderBtn').disabled = false;
