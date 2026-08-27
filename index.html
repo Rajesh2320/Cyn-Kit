@@ -1168,9 +1168,9 @@
             if (distance <= 2) {
                 deliveryCharge = 50;
             } else if (distance <= 15) {
-                deliveryCharge = 50 + (8 * (distance - 3));
+                deliveryCharge = Math.round(50 + (8 * (distance - 3)));
             } else {
-                deliveryCharge = 150 + (10 * (distance - 15));
+                deliveryCharge = Math.round(150 + (10 * (distance - 15)));
             }
 
             chargeAmount.textContent = '₹' + deliveryCharge;
