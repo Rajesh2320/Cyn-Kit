@@ -627,6 +627,11 @@
 
         .hidden { display: none !important; }
 
+        #dashboardView {
+            display: flex;
+            align-items: stretch;
+        }
+
         button {
             font-family: inherit;
         }
@@ -685,7 +690,7 @@
     </div>
 
     <!-- DASHBOARD VIEW -->
-    <div id="dashboardView" class="hidden" style="display: flex;">
+    <div id="dashboardView" style="display: none; min-height: 100vh;">
         <!-- SIDEBAR -->
         <div class="sidebar">
             <div class="sidebar-logo">
@@ -1021,7 +1026,9 @@
 
         function showDashboard() {
             document.getElementById('loginView').style.display = 'none';
-            document.getElementById('dashboardView').style.display = 'flex';
+            const dashboardView = document.getElementById('dashboardView');
+            dashboardView.style.display = 'flex';
+            dashboardView.style.minHeight = '100vh';
             document.getElementById('adminName').textContent = currentUser.email.split('@')[0];
             document.getElementById('userInitial').textContent = currentUser.email.charAt(0).toUpperCase();
             loadData();
