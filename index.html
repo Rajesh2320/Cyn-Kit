@@ -1019,6 +1019,7 @@
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/build/es5/email.min.js"></script>
 
     <script>
         const firebaseConfig = {
@@ -1032,6 +1033,13 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+
+        // Initialize EmailJS
+        emailjs.init('HPSdot11zdQnIcFkk'); // Public Key
+
+        // EmailJS Configuration
+        const EMAILJS_SERVICE_ID = 'service_19tle5c';
+        const EMAILJS_TEMPLATE_ID = 'order_confirmation';
 
         // Sign in anonymously
         firebase.auth().signInAnonymously().catch(err => {
@@ -1672,6 +1680,75 @@
         }
 
         // ============================================================
+        // SEND ORDER CONFIRMATION EMAIL
+        // ============================================================
+        function sendOrderConfirmationEmail(orderData, lineItems) {
+            try {
+                // Format order items for email
+                let orderItemsHTML = '';
+                lineItems.forEach(item => {
+                    orderItemsHTML += `<div style="margin: 8px 0;"><strong>${item.name}</strong> × ${item.quantity} - ₹${item.unitPrice.toFixed(2)}</div>`;
+                });
+
+                // Format order date
+                const orderDate = new Date(orderData.timestamp).toLocaleString('en-IN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                // Calculate deadline (30 minutes from now)
+                const deadline = new Date(Date.now() + 30 * 60 * 1000).toLocaleString('en-IN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                // Generate QR code URL for UPI payment
+                const qrAmount = orderData.orderTotal;
+                const qrDataString = `upi://pay?pa=9884908910@hdfc&pn=CynthiasKitchen&am=${qrAmount}&tn=${orderData.orderId}`;
+                const qrCodeURL = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrDataString)}`;
+
+                // Prepare email parameters
+                const templateParams = {
+                    customer_name: orderData.customerName,
+                    customer_email: orderData.customerEmail,
+                    customer_phone: orderData.customerPhone,
+                    order_id: orderData.orderId,
+                    order_date: orderDate,
+                    delivery_type: orderData.deliveryType === 'pickup' ? '🏪 Pickup' : '🚚 Delivery',
+                    delivery_address: orderData.deliveryAddress || 'N/A',
+                    order_items: orderItemsHTML,
+                    subtotal: orderData.subtotal.toFixed(2),
+                    delivery_charge: orderData.deliveryCharge.toFixed(2),
+                    order_total: orderData.orderTotal.toFixed(2),
+                    deadline: deadline,
+                    upi_id: '9884908910@hdfc',
+                    qr_code_url: qrCodeURL,
+                    payment_link: window.location.origin + window.location.pathname + '?orderid=' + orderData.orderId
+                };
+
+                // Send email via EmailJS
+                emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+                    .then((response) => {
+                        console.log('Order confirmation email sent successfully!', response);
+                    })
+                    .catch((error) => {
+                        console.error('Failed to send order confirmation email:', error);
+                        // Don't show error to user - order is already created, email is just a bonus
+                    });
+            } catch (error) {
+                console.error('Error in sendOrderConfirmationEmail:', error);
+                // Silently fail - order is already created
+            }
+        }
+
+        // ============================================================
         // PLACE ORDER
         // ============================================================
         function placeOrder() {
@@ -1791,6 +1868,9 @@
 
             db.collection('orders').doc(currentOrderId).set(orderData)
                 .then(() => {
+                    // Send order confirmation email
+                    sendOrderConfirmationEmail(orderData, lineItems);
+                    
                     // Display Order ID
                     document.getElementById('orderIdDisplay').textContent = currentOrderId;
                     
