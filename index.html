@@ -1664,33 +1664,19 @@
                     document.getElementById('customerAddress').value = details.address || '';
                     document.getElementById('customerPincode').value = details.pincode || '';
                     
-                    // MERGE cart items (old saved + new items)
-                    // BUT: Don't override items user set to qty 0
-                    if (details.cart && Object.keys(details.cart).length > 0) {
-                        console.log('🔍 DEBUG: Saved cart from sessionStorage:', details.cart);
-                        console.log('🔍 DEBUG: Current cart before merge:', cart);
-                        
-                        Object.keys(details.cart).forEach(productId => {
-                            // If user explicitly set qty to 0, don't restore from saved
-                            if (cart[productId] === 0) {
-                                console.log('🔍 DEBUG: Skipping', productId, 'because qty is 0');
-                                return; // Skip - user removed this item
-                            }
-                            // For items not in current cart, add from saved
-                            if (!(productId in cart)) {
-                                cart[productId] = details.cart[productId];
-                                console.log('🔍 DEBUG: Added', productId, 'from saved');
-                            }
-                        });
-                        
-                        console.log('🔍 DEBUG: Final cart after merge:', cart);
-                        updateCartDisplay();
-                        updateOrderSummary();
-                        console.log('✅ Checkout details AND cart MERGED from sessionStorage (respecting qty 0)');
-                        console.log('📦 Merged cart:', cart);
-                    } else {
-                        console.log('✅ Checkout details restored from sessionStorage');
+                    // DON'T restore cart from sessionStorage!
+                    // The current cart in memory is the latest user selection
+                    // Only restore if cart is empty (never been used in this session)
+                    if (Object.keys(cart).length === 0 && details.cart) {
+                        cart = details.cart;
+                        console.log('✅ Cart restored from sessionStorage (was empty)');
+                    } else if (Object.keys(cart).length > 0) {
+                        console.log('✅ Keeping current cart - user has active items:', cart);
                     }
+                    
+                    updateCartDisplay();
+                    updateOrderSummary();
+                    console.log('✅ Customer details restored from sessionStorage');
                 } catch (error) {
                     console.error('Error restoring details:', error);
                 }
