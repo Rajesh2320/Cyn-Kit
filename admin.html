@@ -781,6 +781,25 @@
             background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
             border-color: #2196F3;
         }
+
+        #ordersRefreshIndicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 2px solid #2196F3;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #1976D2;
+            min-width: 220px;
+        }
+
+        #ordersRefreshIndicator.loading {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-color: #2196F3;
+        }
     </style>
 </head>
 <body>
@@ -977,7 +996,7 @@
                 </div>
                 
                 <div class="search-box">
-                    <input type="text" id="orderSearch" placeholder="🔍 Search by name or phone...">
+                    <input type="text" id="orderSearch" placeholder="🔍 Search by Order ID, name or phone...">
                 </div>
                 <div class="table-container">
                     <table>
@@ -1273,6 +1292,7 @@
         let currentOrder = null;
         let deliveryChart, productsChart;
         let autoRefreshInterval = null;
+        let lastRefreshTime = null;
 
         function loginAdmin() {
             const email = document.getElementById('adminEmail').value;
@@ -1353,13 +1373,50 @@
             // Start refreshing every 5 seconds
             autoRefreshInterval = setInterval(() => {
                 loadOrders();
-            }, 5000);
+            }, 60000);  // 60 seconds
         }
 
         function stopAutoRefresh() {
             if (autoRefreshInterval) {
                 clearInterval(autoRefreshInterval);
                 autoRefreshInterval = null;
+            }
+        }
+
+        function updateLastRefreshTime() {
+            lastRefreshTime = new Date();
+            
+            // Format time nicely (HH:MM:SS AM/PM - DD/MM/YYYY)
+            const timeStr = lastRefreshTime.toLocaleTimeString('en-IN', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: true 
+            });
+            const dateStr = lastRefreshTime.toLocaleDateString('en-IN');
+            
+            // Update both indicators
+            const analyticsIndicator = document.getElementById('autoRefreshIndicator');
+            const ordersIndicator = document.getElementById('ordersRefreshIndicator');
+            
+            if (analyticsIndicator) {
+                analyticsIndicator.innerHTML = `
+                    <span class="throb-dot"></span>
+                    <div style="text-align: left;">
+                        <div>Refreshing...</div>
+                        <div style="font-size: 11px; color: #1565C0; margin-top: 3px;">Last: ${timeStr} - ${dateStr}</div>
+                    </div>
+                `;
+            }
+            
+            if (ordersIndicator) {
+                ordersIndicator.innerHTML = `
+                    <span class="throb-dot"></span>
+                    <div style="text-align: left;">
+                        <div>Refreshing...</div>
+                        <div style="font-size: 11px; color: #1565C0; margin-top: 3px;">Last: ${timeStr} - ${dateStr}</div>
+                    </div>
+                `;
             }
         }
 
@@ -1376,6 +1433,7 @@
                     });
                     updateAnalytics();
                     populateOrdersTable();
+                    updateLastRefreshTime();  // Update refresh timestamp
                 })
                 .catch(err => {
                     console.error('Error:', err);
@@ -1554,7 +1612,7 @@
                     <td>₹${formatCurrency(order.orderTotal)}</td>
                     <td><span class="status-badge status-${order.status}">${order.status.replace(/_/g, ' ')}</span></td>
                     <td>${order.deliveryType === 'pickup' ? '🏪' : '🚚'}</td>
-                    <td>${order.timestamp ? new Date(order.timestamp.toDate()).toLocaleDateString() : '-'}</td>
+                    <td style="font-size: 12px;" title="Order placed at">${order.timestamp ? new Date(order.timestamp.toDate()).toLocaleString('en-IN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-'}</td>
                     <td style="text-align: right;"><button class="btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="openOrderModal('${order.id}')">View</button></td>
                 </tr>
             `).join('');
@@ -1562,8 +1620,18 @@
             document.getElementById('orderSearch').addEventListener('input', (e) => {
                 const search = e.target.value.toLowerCase();
                 document.querySelectorAll('#ordersTable tr').forEach(row => {
-                    const text = row.innerText.toLowerCase();
-                    row.style.display = text.includes(search) ? '' : 'none';
+                    // Search includes: Order ID, Customer Name, Phone, Status
+                    const orderIdCell = row.querySelector('td:nth-child(1)').innerText.toLowerCase();
+                    const customerCell = row.querySelector('td:nth-child(2)').innerText.toLowerCase();
+                    const phoneCell = row.querySelector('td:nth-child(3)').innerText.toLowerCase();
+                    const statusCell = row.querySelector('td:nth-child(5)').innerText.toLowerCase();
+                    
+                    const matches = orderIdCell.includes(search) || 
+                                   customerCell.includes(search) || 
+                                   phoneCell.includes(search) ||
+                                   statusCell.includes(search);
+                    
+                    row.style.display = matches ? '' : 'none';
                 });
             });
         }
