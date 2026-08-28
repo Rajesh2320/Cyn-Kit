@@ -25,7 +25,9 @@
         html { scroll-behavior: smooth; }
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(to right, #ff9a56 0%, #faf8f3 35%, #faf8f3 65%, #1f8f1f 100%);
+            background: linear-gradient(135deg, rgba(255, 154, 86, 0.9) 0%, rgba(250, 248, 243, 0.9) 50%, rgba(31, 143, 31, 0.9) 100%),
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600"><rect width="900" height="200" fill="%23FF9A56"/><rect y="200" width="900" height="200" fill="%23FFFFFF"/><rect y="400" width="900" height="200" fill="%231F8F1F"/><circle cx="450" cy="300" r="40" fill="%23000080" opacity="0.3"/></svg>') no-repeat center/cover fixed;
+            background-blend-mode: overlay;
             color: var(--text-dark);
             line-height: 1.6;
             min-height: 100vh;
