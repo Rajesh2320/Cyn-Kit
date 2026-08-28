@@ -1650,7 +1650,7 @@
             
             updateOrderSummary();
             
-            // RESTORE checkout details from sessionStorage if available
+            // RESTORE checkout details AND cart from sessionStorage if available
             const savedDetails = sessionStorage.getItem('checkoutDetails');
             if (savedDetails) {
                 try {
@@ -1660,7 +1660,16 @@
                     document.getElementById('customerEmail').value = details.email || '';
                     document.getElementById('customerAddress').value = details.address || '';
                     document.getElementById('customerPincode').value = details.pincode || '';
-                    console.log('✅ Checkout details restored from sessionStorage');
+                    
+                    // RESTORE cart items
+                    if (details.cart && Object.keys(details.cart).length > 0) {
+                        cart = details.cart;
+                        updateCartDisplay();
+                        updateOrderSummary();
+                        console.log('✅ Checkout details AND cart restored from sessionStorage');
+                    } else {
+                        console.log('✅ Checkout details restored from sessionStorage');
+                    }
                 } catch (error) {
                     console.error('Error restoring details:', error);
                 }
@@ -1791,19 +1800,20 @@
         }
 
         function goBackToStore() {
-            // SAVE checkout details to sessionStorage before clearing
+            // SAVE checkout details AND cart items to sessionStorage before clearing
             const checkoutDetails = {
                 name: document.getElementById('customerName').value,
                 phone: document.getElementById('customerPhone').value,
                 email: document.getElementById('customerEmail').value,
                 address: document.getElementById('customerAddress').value,
-                pincode: document.getElementById('customerPincode').value
+                pincode: document.getElementById('customerPincode').value,
+                cart: cart  // SAVE cart items too!
             };
             
             // Only save if at least one field has data (not empty checkout)
-            if (checkoutDetails.name || checkoutDetails.phone || checkoutDetails.email || checkoutDetails.address || checkoutDetails.pincode) {
+            if (checkoutDetails.name || checkoutDetails.phone || checkoutDetails.email || checkoutDetails.address || checkoutDetails.pincode || Object.keys(cart).length > 0) {
                 sessionStorage.setItem('checkoutDetails', JSON.stringify(checkoutDetails));
-                console.log('💾 Checkout details saved to sessionStorage');
+                console.log('💾 Checkout details AND cart saved to sessionStorage:', checkoutDetails);
             }
             
             isSearchingOrder = false;
@@ -2224,9 +2234,9 @@
                     
                     alert(alertMessage);
                     
-                    // CLEAR sessionStorage after successful order placement
+                    // CLEAR sessionStorage after successful order placement (both details AND cart)
                     sessionStorage.removeItem('checkoutDetails');
-                    console.log('🗑️ Checkout details cleared from sessionStorage');
+                    console.log('🗑️ Checkout details and cart cleared from sessionStorage');
                     
                     // Disable form fields during payment
                     document.getElementById('customerName').disabled = true;
