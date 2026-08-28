@@ -1648,9 +1648,7 @@
             document.getElementById('deliveryChargeBox').classList.remove('show');
             document.getElementById('deliveryChargeLine').style.display = 'none';
             
-            updateOrderSummary();
-            
-            // RESTORE checkout details AND cart from sessionStorage if available
+            // RESTORE checkout details AND cart from sessionStorage FIRST
             const savedDetails = sessionStorage.getItem('checkoutDetails');
             if (savedDetails) {
                 try {
@@ -1665,7 +1663,6 @@
                     if (details.cart && Object.keys(details.cart).length > 0) {
                         cart = details.cart;
                         updateCartDisplay();
-                        updateOrderSummary();
                         console.log('✅ Checkout details AND cart restored from sessionStorage');
                     } else {
                         console.log('✅ Checkout details restored from sessionStorage');
@@ -1674,6 +1671,9 @@
                     console.error('Error restoring details:', error);
                 }
             }
+            
+            // NOW update order summary AFTER restoring cart
+            updateOrderSummary();
             
             switchView('checkoutView');
             
