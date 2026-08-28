@@ -1701,6 +1701,7 @@
             toggle.style.pointerEvents = 'none';
             toggle.style.opacity = '0.6';
             
+            // Simple set operation - no .get() first!
             db.collection('siteSettings').doc('banner').set({
                 message: '',
                 enabled: false,
