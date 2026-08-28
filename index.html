@@ -1115,6 +1115,15 @@
         }
 
         function validatePincode() {
+            // Only validate pincode if delivery type is 'delivery'
+            if (deliveryType !== 'delivery') {
+                const pincodeError = document.getElementById('pincodeError');
+                const pincodeField = document.getElementById('customerPincode').parentElement;
+                pincodeError.classList.remove('show');
+                pincodeField.classList.remove('error');
+                return;
+            }
+
             const pincode = document.getElementById('customerPincode').value.trim();
             const deliveryChargeBox = document.getElementById('deliveryChargeBox');
             const pincodeField = document.getElementById('customerPincode').parentElement;
@@ -1153,6 +1162,15 @@
         }
 
         function validateAddress() {
+            // Only validate address if delivery type is 'delivery'
+            if (deliveryType !== 'delivery') {
+                const addressError = document.getElementById('addressError');
+                const addressField = document.getElementById('customerAddress').parentElement;
+                addressError.classList.remove('show');
+                addressField.classList.remove('error');
+                return;
+            }
+
             const address = document.getElementById('customerAddress').value.trim();
             const addressError = document.getElementById('addressError');
             const addressField = document.getElementById('customerAddress').parentElement;
