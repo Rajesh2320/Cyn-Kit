@@ -1667,17 +1667,25 @@
                     // MERGE cart items (old saved + new items)
                     // BUT: Don't override items user set to qty 0
                     if (details.cart && Object.keys(details.cart).length > 0) {
+                        console.log('🔍 DEBUG: Saved cart from sessionStorage:', details.cart);
+                        console.log('🔍 DEBUG: Current cart before merge:', cart);
+                        
                         Object.keys(details.cart).forEach(productId => {
                             // If user explicitly set qty to 0, don't restore from saved
                             if (cart[productId] === 0) {
+                                console.log('🔍 DEBUG: Skipping', productId, 'because qty is 0');
                                 return; // Skip - user removed this item
                             }
                             // For items not in current cart, add from saved
                             if (!(productId in cart)) {
                                 cart[productId] = details.cart[productId];
+                                console.log('🔍 DEBUG: Added', productId, 'from saved');
                             }
                         });
+                        
+                        console.log('🔍 DEBUG: Final cart after merge:', cart);
                         updateCartDisplay();
+                        updateOrderSummary();
                         console.log('✅ Checkout details AND cart MERGED from sessionStorage (respecting qty 0)');
                         console.log('📦 Merged cart:', cart);
                     } else {
