@@ -1538,9 +1538,31 @@
             setTimeout(() => startAutoRefresh(), 500);
             // Load website status
             setTimeout(() => loadWebsiteStatus(), 300);
+            // Debug auth on load
+            setTimeout(() => debugAdminAuth(), 400);
         }
 
         // WEBSITE STATUS FUNCTIONS
+        // DEBUG: Check admin authentication
+        function debugAdminAuth() {
+            auth.currentUser.getIdTokenResult().then(idTokenResult => {
+                const uid = auth.currentUser.uid;
+                const email = auth.currentUser.email;
+                const expectedUid = '2zviW2Kb3cQJ667hFinAU928HDk1';
+                
+                console.log('🔍 DEBUG AUTH:');
+                console.log('Your UID:', uid);
+                console.log('Expected UID:', expectedUid);
+                console.log('Match?:', uid === expectedUid ? '✅ YES' : '❌ NO');
+                console.log('Your Email:', email);
+                console.log('Custom Claims:', idTokenResult.claims);
+                
+                if (uid !== expectedUid) {
+                    alert('⚠️  WARNING!\n\nYour UID does not match the admin UID in Firestore rules.\n\nYour UID: ' + uid + '\n\nExpected: ' + expectedUid + '\n\nPlease update the Firestore rules with your correct UID.');
+                }
+            });
+        }
+
         function loadWebsiteStatus() {
             db.collection('siteSettings').doc('status').get()
                 .then(doc => {
@@ -1576,27 +1598,53 @@
         }
 
         function toggleWebsiteStatus() {
+            // Verify user is authenticated
+            if (!currentUser) {
+                alert('❌ You must be logged in to change website status');
+                return;
+            }
+
+            // Disable toggle during update
+            const toggle = document.getElementById('toggleSlider');
+            toggle.style.pointerEvents = 'none';
+            toggle.style.opacity = '0.6';
+
             db.collection('siteSettings').doc('status').get()
                 .then(doc => {
                     const isCurrentlyOnline = !doc.exists || doc.data().isOnline !== false;
                     const newStatus = !isCurrentlyOnline; // Toggle
                     
+                    console.log('🔄 Toggling from', isCurrentlyOnline ? 'ONLINE' : 'MAINTENANCE', 'to', newStatus ? 'ONLINE' : 'MAINTENANCE');
+                    
+                    // Use merge to avoid permission issues
                     return db.collection('siteSettings').doc('status').set({
                         isOnline: newStatus,
-                        lastUpdated: new Date(),
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
                         updatedBy: currentUser.email
-                    });
+                    }, { merge: true });
                 })
                 .then(() => {
-                    loadWebsiteStatus();
-                    alert(document.getElementById('statusBadge').textContent.includes('ONLINE') 
-                        ? '✅ Website is now ONLINE' 
-                        : '🔴 Website is now in MAINTENANCE MODE');
-                    console.log('✅ Website status updated');
+                    console.log('✅ Firestore updated successfully');
+                    // Wait a moment then reload status
+                    setTimeout(() => {
+                        loadWebsiteStatus();
+                        // Re-enable toggle
+                        toggle.style.pointerEvents = 'auto';
+                        toggle.style.opacity = '1';
+                        
+                        const isMaintenance = document.getElementById('statusBadge').textContent.includes('MAINTENANCE');
+                        alert(isMaintenance 
+                            ? '🔴 Website is now in MAINTENANCE MODE' 
+                            : '✅ Website is now ONLINE');
+                    }, 500);
                 })
                 .catch(err => {
-                    alert('Error updating status: ' + err.message);
-                    console.error('Error:', err);
+                    console.error('❌ Error updating status:', err);
+                    // Re-enable toggle
+                    toggle.style.pointerEvents = 'auto';
+                    toggle.style.opacity = '1';
+                    
+                    alert('❌ Error: ' + err.message + '\n\nMake sure:\n1. You are logged in\n2. Firestore rules allow admin updates\n3. Your admin UID is correct');
                 });
         }
 
