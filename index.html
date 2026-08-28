@@ -1899,6 +1899,89 @@
         }
 
         // ============================================================
+        // SEND PAYMENT PROOF SUBMITTED CONFIRMATION EMAIL
+        // ============================================================
+        async function sendProofSubmittedEmail(order) {
+            try {
+                if (typeof emailjs === 'undefined') {
+                    console.warn("⚠️ EmailJS not available yet, skipping email");
+                    return { success: false, message: 'EmailJS not available' };
+                }
+
+                console.log('📧 Sending proof submitted confirmation email...');
+
+                const emailSubject = '✅ Payment Proof Received - Under Review';
+                const emailBody = `
+<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+    <h2 style="color: #28a745; text-align: center;">✅ Payment Proof Received!</h2>
+    
+    <p>Hi <strong>${order.customerName}</strong>,</p>
+    
+    <p>Thank you for submitting your payment proof for Order <strong>${order.orderId}</strong>.</p>
+    
+    <div style="background: #d1e7dd; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0; border-radius: 4px;">
+        <h3 style="margin-top: 0; color: #0f5132;">✅ Payment Proof Received</h3>
+        <p><strong>Order ID:</strong> ${order.orderId}</p>
+        <p><strong>Order Total:</strong> ₹${order.orderTotal.toFixed(2)}</p>
+        <p><strong>Status:</strong> UNDER REVIEW</p>
+    </div>
+    
+    <p>Your payment proof has been received and is being reviewed by our team.</p>
+    
+    <p style="font-weight: 600; color: #0f5132;">⏱️ What happens next?</p>
+    <ul style="margin: 10px 0; padding-left: 20px;">
+        <li>Our team will verify your payment proof</li>
+        <li>Typical review time: <strong>2-4 hours</strong></li>
+        <li>You'll receive another email once payment is confirmed</li>
+        <li>If we need clarification, we'll contact you immediately</li>
+    </ul>
+    
+    <p style="background: #f0f0f0; padding: 15px; border-radius: 4px; margin-top: 20px;">
+        <strong>Order Summary:</strong><br>
+        Items Total: ₹${order.subtotal.toFixed(2)}<br>
+        Delivery Charge: ₹${order.deliveryCharge.toFixed(2)}<br>
+        <strong>Total Amount:</strong> ₹${order.orderTotal.toFixed(2)}<br>
+        <strong>Delivery Type:</strong> ${order.deliveryType === 'pickup' ? '🏪 Pickup' : '🚚 Delivery'}
+    </p>
+    
+    <p style="color: #666; font-size: 13px; margin-top: 30px;">
+        Thank you for your patience!<br>
+        <strong>Cynthia's Kitchen | Quality Homemade Eatables</strong><br>
+        Contact: support@cynthiaskitchen.com
+    </p>
+</div>
+                `;
+
+                // Prepare email parameters using DYNAMIC SUBJECT AND BODY
+                const templateParams = {
+                    to_email: order.customerEmail,
+                    customer_name: order.customerName,
+                    order_id: order.orderId,
+                    email_subject: emailSubject,
+                    email_body: emailBody
+                };
+
+                console.log('📤 Sending proof submitted email to:', order.customerEmail);
+                
+                // Send email via EmailJS using async/await
+                await emailjs.send('service_19tle5c', 'template_ihoj332', templateParams);
+                console.log('✅ Proof submitted confirmation email sent to ' + order.customerEmail);
+                
+                return { 
+                    success: true, 
+                    email: order.customerEmail,
+                    message: 'Confirmation email sent successfully'
+                };
+            } catch (error) {
+                console.error('❌ Email error:', error);
+                return { 
+                    success: false, 
+                    message: 'Email service error: ' + error.message
+                };
+            }
+        }
+
+        // ============================================================
         // PLACE ORDER
         // ============================================================
         function placeOrder() {
@@ -2088,7 +2171,7 @@
             window.location.href = upiString;
         }
 
-        function submitPaymentProof() {
+        async function submitPaymentProof() {
             const proofFile = document.getElementById('proofFile').files[0];
             if (!proofFile) {
                 alert('Please select a payment screenshot');
@@ -2100,25 +2183,53 @@
             submitBtn.textContent = 'Submitting...';
 
             const reader = new FileReader();
-            reader.onload = () => {
-                db.collection('orders').doc(currentOrderId).update({
-                    proofBase64: reader.result,
-                    status: 'payment_proof_submitted',
-                    paymentSubmittedAt: new Date()
-                })
-                .then(() => {
-                    alert('✓ Payment proof submitted!\n\nYour order ID: ' + currentOrderId + '\n\nWe\'ll review and confirm shortly.');
+            reader.onload = async () => {
+                try {
+                    // Step 1: Update Firestore with proof and status
+                    await db.collection('orders').doc(currentOrderId).update({
+                        proofBase64: reader.result,
+                        status: 'payment_proof_submitted',
+                        paymentSubmittedAt: new Date()
+                    });
+
+                    console.log('✅ Firestore updated successfully');
+
+                    // Step 2: Get the order details to send email
+                    const orderDoc = await db.collection('orders').doc(currentOrderId).get();
+                    const orderData = orderDoc.data();
+
+                    // Step 3: Send proof submitted confirmation email
+                    console.log('📧 Sending confirmation email...');
+                    const emailResult = await sendProofSubmittedEmail({
+                        orderId: currentOrderId,
+                        customerName: orderData.customerName,
+                        customerEmail: orderData.customerEmail,
+                        orderTotal: orderData.orderTotal,
+                        subtotal: orderData.subtotal,
+                        deliveryCharge: orderData.deliveryCharge,
+                        deliveryType: orderData.deliveryType
+                    });
+
+                    // Step 4: Show success message
+                    if (emailResult.success) {
+                        alert('✅ Payment proof submitted!\n\n📧 Confirmation email sent to ' + orderData.customerEmail + '\n\nYour order ID: ' + currentOrderId + '\n\nWe\'ll review and confirm shortly.');
+                    } else {
+                        alert('✅ Payment proof submitted!\n\n⚠️ Email notification could not be sent, but your proof was received.\n\nYour order ID: ' + currentOrderId + '\n\nWe\'ll review and confirm shortly.');
+                    }
+
+                    // Step 5: Reset and go back
                     cart = {};
                     updateCartDisplay();
                     goBackToStore();
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Submit Payment Proof';
-                })
-                .catch(err => {
+
+                } catch (err) {
                     alert('Error: ' + err.message);
+                    console.error('❌ Error in submitPaymentProof:', err);
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Submit Payment Proof';
-                });
+                }
             };
             reader.readAsDataURL(proofFile);
         }
