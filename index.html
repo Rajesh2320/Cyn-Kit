@@ -1932,7 +1932,6 @@
                     
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 })
-                })
                 .catch(err => {
                     placeOrderBtn.disabled = false; // Re-enable on error so user can retry
                     alert('Error creating order: ' + err.message);
