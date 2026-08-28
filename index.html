@@ -1109,15 +1109,40 @@
                         document.querySelector('.checkout-wrapper').style.gridTemplateColumns = '1fr';
                         document.querySelector('.checkout-sidebar').style.width = '100%';
                         
+                        // ===== POPULATE ORDER SUMMARY =====
+                        const subtotal = order.subtotal || 0;
+                        const deliveryCharge = order.deliveryCharge || 0;
+                        const total = order.orderTotal || (subtotal + deliveryCharge);
+                        
+                        // Update sidebar with order amounts
+                        document.getElementById('sidebarSubtotal').textContent = '₹' + subtotal.toFixed(2);
+                        document.getElementById('checkoutTotal').textContent = '₹' + total.toFixed(2);
+                        
+                        // Show delivery charge if applicable
+                        if (deliveryCharge > 0) {
+                            document.getElementById('deliveryChargeLine').style.display = 'flex';
+                            document.getElementById('sidebarDeliveryCharge').textContent = '₹' + deliveryCharge.toFixed(2);
+                        }
+                        
+                        // Populate order items in summary
+                        const items = order.items || [];
+                        const itemsHTML = items.map(item => 
+                            `<div style="font-size: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; color: var(--text-dark);">
+                                <span>${item.name} × ${item.quantity}</span>
+                                <span>₹${(item.unitPrice * item.quantity).toFixed(2)}</span>
+                            </div>`
+                        ).join('');
+                        document.getElementById('checkoutSummaryItems').innerHTML = itemsHTML;
+                        
                         // Show payment section with order ID
                         document.getElementById('orderIdDisplay').textContent = orderId;
                         
                         // Generate QR code with order amount
-                        const orderTotal = order.orderTotal || 0;
-                        generateQRCode(orderTotal);
+                        generateQRCode(total);
                         
                         document.getElementById('qrSection').classList.add('show');
                         document.getElementById('proofSection').classList.add('show');
+                        document.getElementById('submitProofBtn').classList.add('show');
                         
                         // Show payment info message
                         const proofSection = document.getElementById('proofSection');
@@ -1135,7 +1160,7 @@
                             document.getElementById('proofSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
                         }, 500);
                         
-                        alert('✅ Order found!\n\nOrder ID: ' + orderId + '\n\nAmount: ₹' + orderTotal.toFixed(2) + '\n\nPlease upload your payment proof below.');
+                        alert('✅ Order found!\n\nOrder ID: ' + orderId + '\n\nAmount: ₹' + total.toFixed(2) + '\n\nPlease upload your payment proof below.');
                     } else {
                         console.error('❌ Order not found:', orderId);
                         alert('❌ Order not found. Please check the Order ID and try again.');
