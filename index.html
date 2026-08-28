@@ -1665,11 +1665,20 @@
                     document.getElementById('customerPincode').value = details.pincode || '';
                     
                     // MERGE cart items (old saved + new items)
+                    // BUT: Don't override items user set to qty 0
                     if (details.cart && Object.keys(details.cart).length > 0) {
-                        // Merge: saved items + current items (current items take priority if same product)
-                        cart = { ...details.cart, ...cart };
+                        Object.keys(details.cart).forEach(productId => {
+                            // If user explicitly set qty to 0, don't restore from saved
+                            if (cart[productId] === 0) {
+                                return; // Skip - user removed this item
+                            }
+                            // For items not in current cart, add from saved
+                            if (!(productId in cart)) {
+                                cart[productId] = details.cart[productId];
+                            }
+                        });
                         updateCartDisplay();
-                        console.log('✅ Checkout details AND cart MERGED from sessionStorage');
+                        console.log('✅ Checkout details AND cart MERGED from sessionStorage (respecting qty 0)');
                         console.log('📦 Merged cart:', cart);
                     } else {
                         console.log('✅ Checkout details restored from sessionStorage');
