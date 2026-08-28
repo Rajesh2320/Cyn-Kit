@@ -798,11 +798,18 @@
 
             <!-- ANALYTICS TAB -->
             <div id="analytics" class="tab-content active">
-                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 40px;">
-                    <img src="https://i.ibb.co/23Xm42hf/cynthias-kitchen-logo.png" alt="Cynthia's Kitchen" style="height: 40px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
-                    <div>
-                        <h2 style="font-size: 28px; font-weight: 700; color: #1e1e2e; margin: 0;">Analytics</h2>
-                        <p style="color: #888; font-size: 14px; margin: 4px 0 0 0;">Track your sales performance</p>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 40px;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <img src="https://i.ibb.co/23Xm42hf/cynthias-kitchen-logo.png" alt="Cynthia's Kitchen" style="height: 40px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
+                        <div>
+                            <h2 style="font-size: 28px; font-weight: 700; color: #1e1e2e; margin: 0;">Analytics</h2>
+                            <p style="color: #888; font-size: 14px; margin: 4px 0 0 0;">Track your sales performance</p>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div id="autoRefreshIndicator" style="font-size: 12px; color: #666; padding: 8px 12px; background: #f0f0f0; border-radius: 6px; font-weight: 500;">
+                            ⟳ Auto-refresh in <span id="refreshCountdown">60</span>s
+                        </div>
                     </div>
                 </div>
                 
@@ -1220,6 +1227,8 @@
         let currentOrderId = null;
         let currentOrder = null;
         let deliveryChart, productsChart;
+        let autoRefreshInterval = null;
+        let refreshCountdown = 60;
 
         function loginAdmin() {
             const email = document.getElementById('adminEmail').value;
@@ -1244,6 +1253,7 @@
         }
 
         function logout() {
+            stopAutoRefresh();  // Stop auto-refresh when logging out
             auth.signOut().then(() => {
                 currentUser = null;
                 document.getElementById('loginView').style.display = 'flex';
@@ -1259,6 +1269,7 @@
             document.getElementById('adminName').textContent = currentUser.email.split('@')[0];
             document.getElementById('userInitial').textContent = currentUser.email.charAt(0).toUpperCase();
             loadData();
+            startAutoRefresh();  // Start auto-refresh for analytics tab
         }
 
         // Format currency - remove trailing zeros and show whole numbers cleanly
@@ -1274,13 +1285,64 @@
             if (tab === 'analytics') {
                 document.getElementById('analytics').classList.add('active');
                 document.querySelectorAll('.sidebar-menu button')[0].classList.add('active');
+                startAutoRefresh();  // Start auto-refresh for analytics
             } else if (tab === 'orders') {
                 document.getElementById('orders').classList.add('active');
                 document.querySelectorAll('.sidebar-menu button')[1].classList.add('active');
+                stopAutoRefresh();  // Stop auto-refresh when leaving analytics
             } else if (tab === 'products') {
                 document.getElementById('products').classList.add('active');
                 document.querySelectorAll('.sidebar-menu button')[2].classList.add('active');
                 loadProducts();
+                stopAutoRefresh();  // Stop auto-refresh when leaving analytics
+            }
+        }
+
+        function startAutoRefresh() {
+            // Stop any existing interval first
+            stopAutoRefresh();
+            
+            // Immediately reset the countdown
+            refreshCountdown = 60;
+            updateRefreshDisplay();
+            
+            // Start countdown timer (updates every 1 second)
+            autoRefreshInterval = setInterval(() => {
+                refreshCountdown--;
+                updateRefreshDisplay();
+                
+                // When countdown reaches 0, refresh the data
+                if (refreshCountdown <= 0) {
+                    loadOrders();
+                    refreshCountdown = 60;
+                    updateRefreshDisplay();
+                }
+            }, 1000);
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
+
+        function updateRefreshDisplay() {
+            const countdownElement = document.getElementById('refreshCountdown');
+            if (countdownElement) {
+                countdownElement.textContent = refreshCountdown;
+                
+                // Change color based on remaining time
+                const indicator = document.getElementById('autoRefreshIndicator');
+                if (indicator) {
+                    if (refreshCountdown <= 10) {
+                        indicator.style.background = '#fff3cd';  // Yellow for last 10 seconds
+                        indicator.style.color = '#856404';
+                    } else {
+                        indicator.style.background = '#f0f0f0';  // Gray for normal
+                        indicator.style.color = '#666';
+                    }
+                }
             }
         }
 
