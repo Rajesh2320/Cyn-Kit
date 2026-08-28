@@ -1649,6 +1649,23 @@
             document.getElementById('deliveryChargeLine').style.display = 'none';
             
             updateOrderSummary();
+            
+            // RESTORE checkout details from sessionStorage if available
+            const savedDetails = sessionStorage.getItem('checkoutDetails');
+            if (savedDetails) {
+                try {
+                    const details = JSON.parse(savedDetails);
+                    document.getElementById('customerName').value = details.name || '';
+                    document.getElementById('customerPhone').value = details.phone || '';
+                    document.getElementById('customerEmail').value = details.email || '';
+                    document.getElementById('customerAddress').value = details.address || '';
+                    document.getElementById('customerPincode').value = details.pincode || '';
+                    console.log('✅ Checkout details restored from sessionStorage');
+                } catch (error) {
+                    console.error('Error restoring details:', error);
+                }
+            }
+            
             switchView('checkoutView');
             
             // Immediately validate all fields to show red boxes for empty required fields
@@ -1774,6 +1791,21 @@
         }
 
         function goBackToStore() {
+            // SAVE checkout details to sessionStorage before clearing
+            const checkoutDetails = {
+                name: document.getElementById('customerName').value,
+                phone: document.getElementById('customerPhone').value,
+                email: document.getElementById('customerEmail').value,
+                address: document.getElementById('customerAddress').value,
+                pincode: document.getElementById('customerPincode').value
+            };
+            
+            // Only save if at least one field has data (not empty checkout)
+            if (checkoutDetails.name || checkoutDetails.phone || checkoutDetails.email || checkoutDetails.address || checkoutDetails.pincode) {
+                sessionStorage.setItem('checkoutDetails', JSON.stringify(checkoutDetails));
+                console.log('💾 Checkout details saved to sessionStorage');
+            }
+            
             isSearchingOrder = false;
             unlockOrderFields();
             
@@ -2192,6 +2224,10 @@
                     
                     alert(alertMessage);
                     
+                    // CLEAR sessionStorage after successful order placement
+                    sessionStorage.removeItem('checkoutDetails');
+                    console.log('🗑️ Checkout details cleared from sessionStorage');
+                    
                     // Disable form fields during payment
                     document.getElementById('customerName').disabled = true;
                     document.getElementById('customerPhone').disabled = true;
@@ -2368,6 +2404,9 @@
                 return;
             }
 
+            // CLEAR sessionStorage for search & pay (separate flow)
+            sessionStorage.removeItem('checkoutDetails');
+            
             db.collection('orders').doc(orderId).get()
                 .then(doc => {
                     if (doc.exists) {
