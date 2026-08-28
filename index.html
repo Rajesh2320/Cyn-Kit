@@ -2115,6 +2115,32 @@
                 subtotal += product.price * qty;
             });
 
+            // RECALCULATE delivery charge before placing order
+            if (deliveryType === 'delivery') {
+                const pincode = document.getElementById('customerPincode').value.trim();
+                if (pincodeData[pincode]) {
+                    const distance = pincodeData[pincode];
+                    if (distance <= 2) {
+                        deliveryCharge = 50;
+                    } else if (distance <= 15) {
+                        deliveryCharge = Math.round(50 + (8 * (distance - 3)));
+                    } else {
+                        deliveryCharge = Math.round(150 + (10 * (distance - 15)));
+                    }
+                } else {
+                    deliveryCharge = 0;
+                }
+                
+                // VALIDATION: If delivery type is delivery, charge MUST be > 0
+                if (deliveryCharge === 0) {
+                    placeOrderBtn.disabled = false;
+                    alert('⚠️ Error calculating delivery charge.\n\nPlease ensure pincode is valid and serviceable.');
+                    return;
+                }
+            } else {
+                deliveryCharge = 0;
+            }
+
             const finalTotal = subtotal + (deliveryType === 'delivery' ? deliveryCharge : 0);
 
             currentOrderId = 'ORD' + Date.now() + Math.floor(Math.random() * 1000);
