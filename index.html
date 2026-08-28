@@ -22,6 +22,47 @@
             --border-light: #ebe6e0;
         }
 
+        /* ANNOUNCEMENT BANNER STYLES */
+        @keyframes scroll-left {
+            0% {
+                transform: translateX(100vw);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        #announcementBanner {
+            width: 100%;
+            background: linear-gradient(90deg, #ff6b6b 0%, #ff8787 100%);
+            color: white;
+            padding: 12px 0;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            display: none;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        #announcementBanner.show {
+            display: block;
+        }
+
+        .banner-content {
+            white-space: nowrap;
+            font-size: 16px;
+            font-weight: 600;
+            animation: scroll-left 20s linear infinite;
+            padding: 0 20px;
+            display: inline-block;
+        }
+
+        .banner-content:hover {
+            animation-play-state: paused;
+            cursor: pointer;
+        }
+
         html { scroll-behavior: smooth; }
         body {
             font-family: 'Inter', sans-serif;
@@ -850,6 +891,11 @@
     </style>
 </head>
 <body>
+    <!-- ANNOUNCEMENT BANNER -->
+    <div id="announcementBanner">
+        <div class="banner-content" id="bannerContent">📢 Your message here</div>
+    </div>
+
     <header>
         <div class="header-container">
             <div class="logo-section">
@@ -1086,6 +1132,47 @@
 
         // Check website status as soon as Firebase is ready
         checkWebsiteStatus();
+
+        // ANNOUNCEMENT BANNER FUNCTIONS
+        function loadAnnouncementBanner() {
+            db.collection('siteSettings').doc('banner').get()
+                .then(doc => {
+                    if (doc.exists && doc.data().enabled && doc.data().message) {
+                        const message = doc.data().message;
+                        const banner = document.getElementById('announcementBanner');
+                        const content = document.getElementById('bannerContent');
+                        
+                        content.textContent = '📢 ' + message;
+                        banner.classList.add('show');
+                        console.log('✅ Banner loaded and displayed:', message);
+                    } else {
+                        document.getElementById('announcementBanner').classList.remove('show');
+                        console.log('ℹ️ No active banner');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading banner:', err);
+                });
+        }
+
+        // Load banner on page load
+        setTimeout(() => loadAnnouncementBanner(), 500);
+
+        // Listen for real-time banner updates
+        db.collection('siteSettings').doc('banner').onSnapshot(doc => {
+            if (doc.exists && doc.data().enabled && doc.data().message) {
+                const message = doc.data().message;
+                const banner = document.getElementById('announcementBanner');
+                const content = document.getElementById('bannerContent');
+                
+                content.textContent = '📢 ' + message;
+                banner.classList.add('show');
+                console.log('✅ Banner updated (real-time):', message);
+            } else {
+                document.getElementById('announcementBanner').classList.remove('show');
+                console.log('ℹ️ Banner disabled/cleared');
+            }
+        });
 
         // Initialize EmailJS with error handling (PROVEN WORKING APPROACH)
         let emailjsInitAttempts = 0;
