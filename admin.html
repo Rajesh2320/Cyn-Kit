@@ -741,6 +741,46 @@
                 font-size: 24px;
             }
         }
+
+        @keyframes throb {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.1);
+            }
+        }
+
+        .throb-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: #007bff;
+            border-radius: 50%;
+            animation: throb 1.5s infinite;
+            margin-right: 8px;
+        }
+
+        #autoRefreshIndicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 2px solid #2196F3;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #1976D2;
+            min-width: 180px;
+        }
+
+        #autoRefreshIndicator.loading {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-color: #2196F3;
+        }
     </style>
 </head>
 <body>
@@ -806,10 +846,9 @@
                             <p style="color: #888; font-size: 14px; margin: 4px 0 0 0;">Track your sales performance</p>
                         </div>
                     </div>
-                    <div style="text-align: right;">
-                        <div id="autoRefreshIndicator" style="font-size: 12px; color: #666; padding: 8px 12px; background: #f0f0f0; border-radius: 6px; font-weight: 500;">
-                            ⟳ Auto-refresh in <span id="refreshCountdown">60</span>s
-                        </div>
+                    <div id="autoRefreshIndicator" class="loading">
+                        <span class="throb-dot"></span>
+                        <span>Refreshing...</span>
                     </div>
                 </div>
                 
@@ -923,11 +962,17 @@
 
             <!-- ORDERS TAB -->
             <div id="orders" class="tab-content">
-                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 30px;">
-                    <img src="https://i.ibb.co/23Xm42hf/cynthias-kitchen-logo.png" alt="Cynthia's Kitchen" style="height: 40px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
-                    <div>
-                        <h2 style="font-size: 28px; font-weight: 700; color: #1e1e2e; margin: 0;">Orders</h2>
-                        <p style="color: #888; font-size: 14px; margin: 4px 0 0 0;">Manage customer orders</p>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 30px;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <img src="https://i.ibb.co/23Xm42hf/cynthias-kitchen-logo.png" alt="Cynthia's Kitchen" style="height: 40px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
+                        <div>
+                            <h2 style="font-size: 28px; font-weight: 700; color: #1e1e2e; margin: 0;">Orders</h2>
+                            <p style="color: #888; font-size: 14px; margin: 4px 0 0 0;">Manage customer orders</p>
+                        </div>
+                    </div>
+                    <div id="ordersRefreshIndicator" class="loading">
+                        <span class="throb-dot"></span>
+                        <span>Refreshing...</span>
                     </div>
                 </div>
                 
@@ -1228,7 +1273,6 @@
         let currentOrder = null;
         let deliveryChart, productsChart;
         let autoRefreshInterval = null;
-        let refreshCountdown = 60;
 
         function loginAdmin() {
             const email = document.getElementById('adminEmail').value;
@@ -1269,7 +1313,8 @@
             document.getElementById('adminName').textContent = currentUser.email.split('@')[0];
             document.getElementById('userInitial').textContent = currentUser.email.charAt(0).toUpperCase();
             loadData();
-            startAutoRefresh();  // Start auto-refresh for analytics tab
+            // Start auto-refresh (Analytics tab is default/active)
+            setTimeout(() => startAutoRefresh(), 500);
         }
 
         // Format currency - remove trailing zeros and show whole numbers cleanly
@@ -1289,12 +1334,12 @@
             } else if (tab === 'orders') {
                 document.getElementById('orders').classList.add('active');
                 document.querySelectorAll('.sidebar-menu button')[1].classList.add('active');
-                stopAutoRefresh();  // Stop auto-refresh when leaving analytics
+                startAutoRefresh();  // Start auto-refresh for orders
             } else if (tab === 'products') {
                 document.getElementById('products').classList.add('active');
                 document.querySelectorAll('.sidebar-menu button')[2].classList.add('active');
                 loadProducts();
-                stopAutoRefresh();  // Stop auto-refresh when leaving analytics
+                stopAutoRefresh();  // Stop auto-refresh when leaving analytics/orders
             }
         }
 
@@ -1302,47 +1347,19 @@
             // Stop any existing interval first
             stopAutoRefresh();
             
-            // Immediately reset the countdown
-            refreshCountdown = 60;
-            updateRefreshDisplay();
+            // Immediately refresh the data when entering the tab
+            loadOrders();
             
-            // Start countdown timer (updates every 1 second)
+            // Start refreshing every 5 seconds
             autoRefreshInterval = setInterval(() => {
-                refreshCountdown--;
-                updateRefreshDisplay();
-                
-                // When countdown reaches 0, refresh the data
-                if (refreshCountdown <= 0) {
-                    loadOrders();
-                    refreshCountdown = 60;
-                    updateRefreshDisplay();
-                }
-            }, 1000);
+                loadOrders();
+            }, 5000);
         }
 
         function stopAutoRefresh() {
             if (autoRefreshInterval) {
                 clearInterval(autoRefreshInterval);
                 autoRefreshInterval = null;
-            }
-        }
-
-        function updateRefreshDisplay() {
-            const countdownElement = document.getElementById('refreshCountdown');
-            if (countdownElement) {
-                countdownElement.textContent = refreshCountdown;
-                
-                // Change color based on remaining time
-                const indicator = document.getElementById('autoRefreshIndicator');
-                if (indicator) {
-                    if (refreshCountdown <= 10) {
-                        indicator.style.background = '#fff3cd';  // Yellow for last 10 seconds
-                        indicator.style.color = '#856404';
-                    } else {
-                        indicator.style.background = '#f0f0f0';  // Gray for normal
-                        indicator.style.color = '#666';
-                    }
-                }
             }
         }
 
