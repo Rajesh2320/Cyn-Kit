@@ -1019,7 +1019,7 @@
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/build/email.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/build/email.min.js" onload="console.log('📧 EmailJS library loaded')"></script>
 
     <script>
         const firebaseConfig = {
@@ -1034,28 +1034,38 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Initialize EmailJS when library is ready
+        // Initialize EmailJS with better async handling
         let emailjsReady = false;
-        let EMAILJS_SERVICE_ID = 'service_19tle5c';
-        let EMAILJS_TEMPLATE_ID = 'order_confirmation';
+        const EMAILJS_SERVICE_ID = 'service_19tle5c';
+        const EMAILJS_TEMPLATE_ID = 'order_confirmation';
 
-        function initializeEmailJS() {
-            if (typeof emailjs !== 'undefined' && !emailjsReady) {
-                try {
-                    emailjs.init('HPSdot11zdQnIcFkk'); // Public Key
-                    emailjsReady = true;
-                    console.log('EmailJS initialized successfully');
-                } catch (err) {
-                    console.error('Error initializing EmailJS:', err);
+        // Wait for EmailJS library to load and initialize
+        function waitForEmailJS() {
+            console.log('⏳ Starting EmailJS initialization...');
+            return new Promise((resolve) => {
+                function checkEmailJS() {
+                    console.log('Checking for window.emailjs...');
+                    if (typeof window.emailjs !== 'undefined') {
+                        console.log('📧 EmailJS library found, initializing...');
+                        try {
+                            window.emailjs.init('HPSdot11zdQnIcFkk');
+                            emailjsReady = true;
+                            console.log('✅ EmailJS initialized successfully');
+                            resolve(true);
+                        } catch (err) {
+                            console.error('❌ Error initializing EmailJS:', err);
+                            resolve(false);
+                        }
+                    } else {
+                        setTimeout(checkEmailJS, 100);
+                    }
                 }
-            } else if (typeof emailjs === 'undefined') {
-                // Retry after a short delay
-                setTimeout(initializeEmailJS, 500);
-            }
+                checkEmailJS();
+            });
         }
 
-        // Initialize EmailJS
-        initializeEmailJS();
+        // Initialize EmailJS as soon as page loads
+        waitForEmailJS();
 
         // Sign in anonymously
         firebase.auth().signInAnonymously().catch(err => {
@@ -1699,75 +1709,108 @@
         // SEND ORDER CONFIRMATION EMAIL
         // ============================================================
         function sendOrderConfirmationEmail(orderData, lineItems) {
-            // Check if EmailJS is ready
-            if (typeof emailjs === 'undefined' || !emailjsReady) {
-                console.warn('EmailJS not ready yet, skipping email');
-                return;
-            }
+            console.log('📧 Sending order confirmation email...');
+            
+            return new Promise((resolvePromise) => {
+                // Wait for EmailJS to be ready
+                function trySendEmail(attempts = 0) {
+                    if (attempts > 20) {
+                        console.warn('⏰ EmailJS still not ready after 20 retries (2 seconds), proceeding without email');
+                        resolvePromise({ success: false, message: 'Email service not available' });
+                        return;
+                    }
 
-            try {
-                // Format order items for email
-                let orderItemsHTML = '';
-                lineItems.forEach(item => {
-                    orderItemsHTML += `<div style="margin: 8px 0;"><strong>${item.name}</strong> × ${item.quantity} - ₹${item.unitPrice.toFixed(2)}</div>`;
-                });
+                    console.log(`📍 Attempt ${attempts + 1}: Checking EmailJS readiness...`);
+                    
+                    if (typeof window.emailjs === 'undefined' || !emailjsReady) {
+                        setTimeout(() => trySendEmail(attempts + 1), 100);
+                        return;
+                    }
 
-                // Format order date
-                const orderDate = new Date(orderData.timestamp).toLocaleString('en-IN', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
+                    console.log('📨 EmailJS ready! Preparing to send...');
+                    
+                    try {
+                        // Format order items for email
+                        let orderItemsHTML = '';
+                        lineItems.forEach(item => {
+                            orderItemsHTML += `<div style="margin: 8px 0;"><strong>${item.name}</strong> × ${item.quantity} - ₹${item.unitPrice.toFixed(2)}</div>`;
+                        });
 
-                // Calculate deadline (30 minutes from now)
-                const deadline = new Date(Date.now() + 30 * 60 * 1000).toLocaleString('en-IN', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
+                        // Format order date
+                        const orderDate = new Date(orderData.timestamp).toLocaleString('en-IN', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        });
 
-                // Generate QR code URL for UPI payment
-                const qrAmount = orderData.orderTotal;
-                const qrDataString = `upi://pay?pa=9884908910@hdfc&pn=CynthiasKitchen&am=${qrAmount}&tn=${orderData.orderId}`;
-                const qrCodeURL = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrDataString)}`;
+                        // Calculate deadline (30 minutes from now)
+                        const deadline = new Date(Date.now() + 30 * 60 * 1000).toLocaleString('en-IN', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
 
-                // Prepare email parameters
-                const templateParams = {
-                    customer_name: orderData.customerName,
-                    customer_email: orderData.customerEmail,
-                    customer_phone: orderData.customerPhone,
-                    order_id: orderData.orderId,
-                    order_date: orderDate,
-                    delivery_type: orderData.deliveryType === 'pickup' ? '🏪 Pickup' : '🚚 Delivery',
-                    delivery_address: orderData.deliveryAddress || 'N/A',
-                    order_items: orderItemsHTML,
-                    subtotal: orderData.subtotal.toFixed(2),
-                    delivery_charge: orderData.deliveryCharge.toFixed(2),
-                    order_total: orderData.orderTotal.toFixed(2),
-                    deadline: deadline,
-                    upi_id: '9884908910@hdfc',
-                    qr_code_url: qrCodeURL,
-                    payment_link: window.location.origin + window.location.pathname + '?orderid=' + orderData.orderId
-                };
+                        // Generate QR code URL for UPI payment
+                        const qrAmount = orderData.orderTotal;
+                        const qrDataString = `upi://pay?pa=9884908910@hdfc&pn=CynthiasKitchen&am=${qrAmount}&tn=${orderData.orderId}`;
+                        const qrCodeURL = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrDataString)}`;
 
-                // Send email via EmailJS
-                emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
-                    .then((response) => {
-                        console.log('Order confirmation email sent successfully!', response);
-                    })
-                    .catch((error) => {
-                        console.error('Failed to send order confirmation email:', error);
-                        // Don't show error to user - order is already created, email is just a bonus
-                    });
-            } catch (error) {
-                console.error('Error in sendOrderConfirmationEmail:', error);
-                // Silently fail - order is already created
-            }
+                        // Prepare email parameters
+                        const templateParams = {
+                            customer_name: orderData.customerName,
+                            customer_email: orderData.customerEmail,
+                            customer_phone: orderData.customerPhone,
+                            order_id: orderData.orderId,
+                            order_date: orderDate,
+                            delivery_type: orderData.deliveryType === 'pickup' ? '🏪 Pickup' : '🚚 Delivery',
+                            delivery_address: orderData.deliveryAddress || 'N/A',
+                            order_items: orderItemsHTML,
+                            subtotal: orderData.subtotal.toFixed(2),
+                            delivery_charge: orderData.deliveryCharge.toFixed(2),
+                            order_total: orderData.orderTotal.toFixed(2),
+                            deadline: deadline,
+                            upi_id: '9884908910@hdfc',
+                            qr_code_url: qrCodeURL,
+                            payment_link: window.location.origin + window.location.pathname + '?orderid=' + orderData.orderId
+                        };
+
+                        console.log('📤 Sending email to:', templateParams.customer_email);
+                        
+                        // Send email via EmailJS
+                        window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+                            .then((response) => {
+                                console.log('✅ Email sent successfully! Response:', response);
+                                resolvePromise({ 
+                                    success: true, 
+                                    email: templateParams.customer_email,
+                                    message: 'Email sent successfully'
+                                });
+                            })
+                            .catch((error) => {
+                                console.error('❌ Email send failed:', error);
+                                resolvePromise({ 
+                                    success: false, 
+                                    email: templateParams.customer_email,
+                                    message: 'Email service error: ' + error.message
+                                });
+                            });
+                    } catch (error) {
+                        console.error('❌ Error preparing email:', error);
+                        resolvePromise({ 
+                            success: false, 
+                            message: 'Error preparing email: ' + error.message
+                        });
+                    }
+                }
+
+                // Start trying to send email
+                trySendEmail();
+            });
         }
 
         // ============================================================
@@ -1890,30 +1933,41 @@
 
             db.collection('orders').doc(currentOrderId).set(orderData)
                 .then(() => {
-                    // Send order confirmation email
-                    sendOrderConfirmationEmail(orderData, lineItems);
-                    
-                    // Display Order ID
-                    document.getElementById('orderIdDisplay').textContent = currentOrderId;
-                    
-                    // Show payment section
-                    generateQRCode(finalTotal);
-                    document.getElementById('qrSection').classList.add('show');
-                    document.getElementById('payBtn').classList.add('show');
-                    document.getElementById('proofSection').classList.add('show');
-                    document.getElementById('submitProofBtn').classList.add('show');
-                    
-                    // Show order ID
-                    alert('Order created!\n\nOrder ID: ' + currentOrderId + '\n\nNow complete the payment below.');
-                    
-                    // Disable form fields during payment
-                    document.getElementById('customerName').disabled = true;
-                    document.getElementById('customerPhone').disabled = true;
-                    document.getElementById('customerEmail').disabled = true;
-                    document.getElementById('customerAddress').disabled = true;
-                    document.getElementById('customerPincode').disabled = true;
-                    
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    // Send order confirmation email and wait for response
+                    sendOrderConfirmationEmail(orderData, lineItems).then((emailResult) => {
+                        // Display Order ID
+                        document.getElementById('orderIdDisplay').textContent = currentOrderId;
+                        
+                        // Show payment section
+                        generateQRCode(finalTotal);
+                        document.getElementById('qrSection').classList.add('show');
+                        document.getElementById('payBtn').classList.add('show');
+                        document.getElementById('proofSection').classList.add('show');
+                        document.getElementById('submitProofBtn').classList.add('show');
+                        
+                        // Show order ID with email status
+                        let alertMessage = '✅ Order created!\n\nOrder ID: ' + currentOrderId + '\n\n';
+                        
+                        if (emailResult.success) {
+                            alertMessage += '📧 Confirmation email sent to:\n' + emailResult.email + '\n\n';
+                        } else {
+                            alertMessage += '⚠️ Order confirmed but email pending\n(Please check your email soon)\n\n';
+                            alertMessage += '📌 Please make a note of your Order ID:\n' + currentOrderId + '\nfor later reference purposes\n\n';
+                        }
+                        
+                        alertMessage += 'Now complete the payment below.';
+                        
+                        alert(alertMessage);
+                        
+                        // Disable form fields during payment
+                        document.getElementById('customerName').disabled = true;
+                        document.getElementById('customerPhone').disabled = true;
+                        document.getElementById('customerEmail').disabled = true;
+                        document.getElementById('customerAddress').disabled = true;
+                        document.getElementById('customerPincode').disabled = true;
+                        
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    });
                 })
                 .catch(err => {
                     placeOrderBtn.disabled = false; // Re-enable on error so user can retry
