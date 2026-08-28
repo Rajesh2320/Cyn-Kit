@@ -1019,7 +1019,7 @@
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/build/email.min.js" onload="console.log('📧 EmailJS library loaded')"></script>
+    <script src="https://unpkg.com/@emailjs/browser@3/dist/build/email.min.js"></script>
 
     <script>
         const firebaseConfig = {
@@ -1043,10 +1043,13 @@
         function waitForEmailJS() {
             console.log('⏳ Starting EmailJS initialization...');
             return new Promise((resolve) => {
+                let checkCount = 0;
                 function checkEmailJS() {
-                    console.log('Checking for window.emailjs...');
-                    if (typeof window.emailjs !== 'undefined') {
-                        console.log('📧 EmailJS library found, initializing...');
+                    checkCount++;
+                    console.log(`Attempt ${checkCount}: Checking for window.emailjs...`);
+                    
+                    if (typeof window.emailjs !== 'undefined' && window.emailjs && typeof window.emailjs.init === 'function') {
+                        console.log('📧 EmailJS library found! Initializing...');
                         try {
                             window.emailjs.init('HPSdot11zdQnIcFkk');
                             emailjsReady = true;
@@ -1056,8 +1059,11 @@
                             console.error('❌ Error initializing EmailJS:', err);
                             resolve(false);
                         }
-                    } else {
+                    } else if (checkCount < 50) {
                         setTimeout(checkEmailJS, 100);
+                    } else {
+                        console.warn('⏰ EmailJS library still not available after 5 seconds');
+                        resolve(false);
                     }
                 }
                 checkEmailJS();
@@ -1714,14 +1720,12 @@
             return new Promise((resolvePromise) => {
                 // Wait for EmailJS to be ready
                 function trySendEmail(attempts = 0) {
-                    if (attempts > 20) {
-                        console.warn('⏰ EmailJS still not ready after 20 retries (2 seconds), proceeding without email');
+                    if (attempts > 30) {
+                        console.warn('⏰ EmailJS still not ready after 3 seconds, proceeding without email');
                         resolvePromise({ success: false, message: 'Email service not available' });
                         return;
                     }
 
-                    console.log(`📍 Attempt ${attempts + 1}: Checking EmailJS readiness...`);
-                    
                     if (typeof window.emailjs === 'undefined' || !emailjsReady) {
                         setTimeout(() => trySendEmail(attempts + 1), 100);
                         return;
@@ -1784,7 +1788,7 @@
                         // Send email via EmailJS
                         window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
                             .then((response) => {
-                                console.log('✅ Email sent successfully! Response:', response);
+                                console.log('✅ Email sent successfully! Response ID:', response.status);
                                 resolvePromise({ 
                                     success: true, 
                                     email: templateParams.customer_email,
@@ -1796,7 +1800,7 @@
                                 resolvePromise({ 
                                     success: false, 
                                     email: templateParams.customer_email,
-                                    message: 'Email service error: ' + error.message
+                                    message: 'Email service error: ' + (error.message || error.text)
                                 });
                             });
                     } catch (error) {
