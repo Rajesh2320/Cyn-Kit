@@ -1821,33 +1821,27 @@
             isSearchingOrder = false;
             unlockOrderFields();
             
-            // Clear all customer form fields
-            document.getElementById('customerName').value = '';
-            document.getElementById('customerPhone').value = '';
-            document.getElementById('customerEmail').value = '';
-            document.getElementById('customerAddress').value = '';
-            document.getElementById('customerPincode').value = '';
-            document.getElementById('proofFile').value = '';
+            // KEEP customer form fields - do NOT clear them!
+            // Customer details remain visible
             
-            // Clear search form
+            // Clear search form only
             document.getElementById('searchOrderId').value = '';
             document.getElementById('searchError').textContent = '';
             document.getElementById('searchError').style.display = 'none';
             
-            // Reset delivery type and cart - COMPLETELY CLEAR
+            // Reset delivery type (but keep cart!)
             deliveryCharge = 0;
             deliveryType = 'delivery';
             
-            // Clear cart object completely
-            Object.keys(cart).forEach(key => delete cart[key]);
-            cart = {};
+            // DON'T clear cart - it will be visible in store view
+            // Just update display to show current cart items
             
             updateCartDisplay();
             
-            // Switch view first
+            // Switch view to store
             switchView('storeView');
             
-            // Then re-render products with empty cart after a brief moment
+            // Re-render products (keep cart items visible)
             setTimeout(() => {
                 if (allProducts && allProducts.length > 0) {
                     displayProducts(allProducts);
@@ -1867,6 +1861,9 @@
             
             switchView('storeView');
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            console.log('📦 Returned to store with cart items:', cart);
+            console.log('👤 Customer details preserved');
         }
 
         // ============================================================
