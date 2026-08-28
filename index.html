@@ -1595,23 +1595,33 @@
                 return;
             }
 
+            // Disable button immediately to prevent double-clicks
+            const placeOrderBtn = document.getElementById('placeOrderBtn');
+            if (placeOrderBtn.disabled) {
+                return; // Already processing
+            }
+            placeOrderBtn.disabled = true;
+
             const name = document.getElementById('customerName').value.trim();
             const phone = document.getElementById('customerPhone').value.trim();
             const email = document.getElementById('customerEmail').value.trim();
 
             if (!name || !phone || !email) {
+                placeOrderBtn.disabled = false; // Re-enable on validation error
                 alert('Please fill in Name, Phone, and Email');
                 return;
             }
 
             // Validate email format
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                placeOrderBtn.disabled = false; // Re-enable on validation error
                 alert('Please enter a valid email address (e.g., name@example.com)');
                 return;
             }
 
             // Validate phone number - must be exactly 10 digits and start with 6-9
             if (!/^[6-9]\d{9}$/.test(phone)) {
+                placeOrderBtn.disabled = false; // Re-enable on validation error
                 alert('Phone number must be a valid 10-digit Indian number (starting with 6, 7, 8, or 9)');
                 return;
             }
@@ -1621,22 +1631,26 @@
                 const pincode = document.getElementById('customerPincode').value.trim();
 
                 if (!address) {
+                    placeOrderBtn.disabled = false; // Re-enable on validation error
                     alert('Please enter your delivery address');
                     return;
                 }
 
                 if (!pincode) {
+                    placeOrderBtn.disabled = false; // Re-enable on validation error
                     alert('Please enter your pincode');
                     return;
                 }
 
                 // Validate pincode format - must be exactly 6 digits
                 if (!/^\d{6}$/.test(pincode)) {
+                    placeOrderBtn.disabled = false; // Re-enable on validation error
                     alert('Pincode must be exactly 6 digits');
                     return;
                 }
 
                 if (!pincodeData[pincode]) {
+                    placeOrderBtn.disabled = false; // Re-enable on validation error
                     alert('⚠️ The pin code is currently not serviceable by us.\n\nWe apologize for the inconvenience caused.\n\nPlease try a different delivery location.');
                     return;
                 }
@@ -1697,9 +1711,6 @@
                     // Show order ID
                     alert('Order created!\n\nOrder ID: ' + currentOrderId + '\n\nNow complete the payment below.');
                     
-                    // Disable Place Order button
-                    document.getElementById('placeOrderBtn').disabled = true;
-                    
                     // Disable form fields during payment
                     document.getElementById('customerName').disabled = true;
                     document.getElementById('customerPhone').disabled = true;
@@ -1710,6 +1721,7 @@
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 })
                 .catch(err => {
+                    placeOrderBtn.disabled = false; // Re-enable on error so user can retry
                     alert('Error creating order: ' + err.message);
                 });
         }
