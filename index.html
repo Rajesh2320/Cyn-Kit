@@ -1570,7 +1570,8 @@
         }
 
         function updateCartDisplay() {
-            const cartCount = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+            // Count only items with qty > 0
+            const cartCount = Object.values(cart).reduce((sum, qty) => sum + (qty > 0 ? qty : 0), 0);
             document.getElementById('cartCount').textContent = cartCount;
 
             const cartItemsContainer = document.getElementById('cartItems');
@@ -1590,6 +1591,10 @@
                 if (!product) return;
 
                 const qty = cart[productId];
+                
+                // SKIP items with quantity 0
+                if (qty === 0) return;
+                
                 const lineTotal = product.price * qty;
                 totalAmount += lineTotal;
 
@@ -1698,6 +1703,10 @@
                 if (!product) return;
 
                 const qty = cart[productId];
+                
+                // SKIP items with quantity 0
+                if (qty === 0) return;
+                
                 const lineTotal = product.price * qty;
                 subtotal += lineTotal;
 
@@ -1869,6 +1878,14 @@
             // NORMAL BACK (before order placed) - Keep details and cart
             console.log('↩️ Normal back to store (keeping details)');
             
+            // Filter out items with qty 0 from cart before saving
+            const filteredCart = {};
+            Object.keys(cart).forEach(productId => {
+                if (cart[productId] > 0) {
+                    filteredCart[productId] = cart[productId];
+                }
+            });
+            
             // SAVE checkout details AND cart items to sessionStorage
             const checkoutDetails = {
                 name: document.getElementById('customerName').value,
@@ -1876,13 +1893,13 @@
                 email: document.getElementById('customerEmail').value,
                 address: document.getElementById('customerAddress').value,
                 pincode: document.getElementById('customerPincode').value,
-                cart: cart
+                cart: filteredCart  // Only items with qty > 0
             };
             
             // Only save if at least one field has data
-            if (checkoutDetails.name || checkoutDetails.phone || checkoutDetails.email || checkoutDetails.address || checkoutDetails.pincode || Object.keys(cart).length > 0) {
+            if (checkoutDetails.name || checkoutDetails.phone || checkoutDetails.email || checkoutDetails.address || checkoutDetails.pincode || Object.keys(filteredCart).length > 0) {
                 sessionStorage.setItem('checkoutDetails', JSON.stringify(checkoutDetails));
-                console.log('💾 Checkout details AND cart saved to sessionStorage');
+                console.log('💾 Checkout details AND cart saved to sessionStorage (qty 0 items filtered)');
             }
             
             isSearchingOrder = false;
@@ -2208,6 +2225,10 @@
                 if (!product) return;
 
                 const qty = cart[productId];
+                
+                // SKIP items with quantity 0
+                if (qty === 0) return;
+                
                 lineItems.push({
                     productId: product.id,
                     name: product.name,
