@@ -879,6 +879,25 @@
                     </div>
                 </div>
                 
+                <!-- WEBSITE STATUS SECTION -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px; margin-bottom: 40px; color: white;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <h3 style="margin: 0 0 8px 0; font-size: 18px;">🌐 Website Status</h3>
+                            <p id="statusText" style="margin: 0; font-size: 14px; opacity: 0.9;">Loading...</p>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span id="statusBadge" style="padding: 6px 12px; background: #4caf50; border-radius: 20px; font-weight: 600; font-size: 12px;">🟢 ONLINE</span>
+                            <div class="toggle-switch" onclick="toggleWebsiteStatus()">
+                                <input type="checkbox" id="siteStatusToggle" style="display: none;">
+                                <span class="toggle-slider" id="toggleSlider" style="display: inline-block; width: 50px; height: 26px; background: #4caf50; border-radius: 13px; position: relative; cursor: pointer; transition: all 0.3s; vertical-align: middle;">
+                                    <span id="toggleCircle" style="display: inline-block; width: 22px; height: 22px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: all 0.3s;"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- MTD SECTION -->
                 <div style="margin-bottom: 40px;">
                     <h2 style="font-size: 18px; font-weight: 700; color: #1e1e2e; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 3px solid #28a745;">📅 This Month (MTD)</h2>
@@ -1517,6 +1536,68 @@
             loadData();
             // Start auto-refresh (Analytics tab is default/active)
             setTimeout(() => startAutoRefresh(), 500);
+            // Load website status
+            setTimeout(() => loadWebsiteStatus(), 300);
+        }
+
+        // WEBSITE STATUS FUNCTIONS
+        function loadWebsiteStatus() {
+            db.collection('siteSettings').doc('status').get()
+                .then(doc => {
+                    const isOnline = !doc.exists || doc.data().isOnline !== false;
+                    updateStatusUI(isOnline);
+                    console.log('✅ Website status loaded:', isOnline ? 'ONLINE' : 'MAINTENANCE');
+                })
+                .catch(err => {
+                    console.error('Error loading status:', err);
+                    updateStatusUI(true); // Default to online on error
+                });
+        }
+
+        function updateStatusUI(isOnline) {
+            const toggle = document.getElementById('toggleSlider');
+            const circle = document.getElementById('toggleCircle');
+            const badge = document.getElementById('statusBadge');
+            const statusText = document.getElementById('statusText');
+            
+            if (isOnline) {
+                toggle.style.background = '#4caf50';
+                circle.style.left = '2px';
+                badge.textContent = '🟢 ONLINE';
+                badge.style.background = '#4caf50';
+                statusText.textContent = 'Website is live and accepting orders';
+            } else {
+                toggle.style.background = '#f44336';
+                circle.style.left = '26px';
+                badge.textContent = '🔴 MAINTENANCE';
+                badge.style.background = '#f44336';
+                statusText.textContent = 'Website is closed for maintenance';
+            }
+        }
+
+        function toggleWebsiteStatus() {
+            db.collection('siteSettings').doc('status').get()
+                .then(doc => {
+                    const isCurrentlyOnline = !doc.exists || doc.data().isOnline !== false;
+                    const newStatus = !isCurrentlyOnline; // Toggle
+                    
+                    return db.collection('siteSettings').doc('status').set({
+                        isOnline: newStatus,
+                        lastUpdated: new Date(),
+                        updatedBy: currentUser.email
+                    });
+                })
+                .then(() => {
+                    loadWebsiteStatus();
+                    alert(document.getElementById('statusBadge').textContent.includes('ONLINE') 
+                        ? '✅ Website is now ONLINE' 
+                        : '🔴 Website is now in MAINTENANCE MODE');
+                    console.log('✅ Website status updated');
+                })
+                .catch(err => {
+                    alert('Error updating status: ' + err.message);
+                    console.error('Error:', err);
+                });
         }
 
         // Format currency - remove trailing zeros and show whole numbers cleanly
