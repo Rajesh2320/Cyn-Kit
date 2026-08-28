@@ -1051,6 +1051,25 @@
 
         const UPI_ID = '9884908910@hdfc';
         
+        // Valid email domain extensions (India + Worldwide common)
+        const validEmailDomains = [
+            'com',      // Most common, worldwide
+            'co.in',    // India specific
+            'in',       // India TLD
+            'org',      // Organizations, non-profits
+            'net',      // Network (older but still used)
+            'biz',      // Business
+            'info',     // Information
+            'edu',      // Education
+            'gov',      // Government
+            'app',      // Modern tech
+            'cloud',    // Cloud services
+            'io',       // Tech startups
+            'tv',       // Media
+            'email',    // Email specific
+            'online'    // General use
+        ];
+        
         const categoryIcons = {
             cakes: '🍰',
             idli: '🥘',
@@ -1059,8 +1078,23 @@
         };
 
         // ============================================================
-        // REAL-TIME FIELD VALIDATION
+        // EMAIL VALIDATION
         // ============================================================
+        function isValidEmailDomain(email) {
+            const parts = email.split('@');
+            if (parts.length !== 2) return false;
+            
+            const domain = parts[1].toLowerCase();
+            
+            // Check if domain ends with any of the valid extensions
+            for (let validDomain of validEmailDomains) {
+                if (domain.endsWith('.' + validDomain)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         // ============================================================
         // FIELD VALIDATION HELPERS
         // ============================================================
@@ -1147,8 +1181,12 @@
                 emailError.textContent = 'Email is required';
                 emailError.classList.add('show');
                 emailField.classList.add('error');
-            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            } else if (!/^[^\s@]+@[a-zA-Z0-9.-]{2,}\.[a-zA-Z]{2,}$/.test(email)) {
                 emailError.textContent = 'Please enter a valid email (e.g., name@example.com)';
+                emailError.classList.add('show');
+                emailField.classList.add('error');
+            } else if (!isValidEmailDomain(email)) {
+                emailError.textContent = 'Email domain not supported. Use .com, .co.in, .in, .org, .net, etc.';
                 emailError.classList.add('show');
                 emailField.classList.add('error');
             } else {
@@ -1661,9 +1699,16 @@
             }
 
             // Validate email format
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            if (!/^[^\s@]+@[a-zA-Z0-9.-]{2,}\.[a-zA-Z]{2,}$/.test(email)) {
                 placeOrderBtn.disabled = false; // Re-enable on validation error
                 alert('Please enter a valid email address (e.g., name@example.com)');
+                return;
+            }
+
+            // Validate email domain
+            if (!isValidEmailDomain(email)) {
+                placeOrderBtn.disabled = false; // Re-enable on validation error
+                alert('Email domain not supported.\n\nSupported domains: .com, .co.in, .in, .org, .net, .biz, .info, .edu, .gov, and more.\n\nPlease use a valid email domain.');
                 return;
             }
 
