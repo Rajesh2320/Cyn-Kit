@@ -1621,9 +1621,9 @@
                         isOnline: newStatus,
                         lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
                         updatedBy: currentUser.email
-                    }, { merge: true });
+                    }, { merge: true }).then(() => newStatus); // Return the new status
                 })
-                .then(() => {
+                .then((newStatus) => {
                     console.log('✅ Firestore updated successfully');
                     // Wait a moment then reload status
                     setTimeout(() => {
@@ -1632,10 +1632,12 @@
                         toggle.style.pointerEvents = 'auto';
                         toggle.style.opacity = '1';
                         
-                        const isMaintenance = document.getElementById('statusBadge').textContent.includes('MAINTENANCE');
-                        alert(isMaintenance 
-                            ? '🔴 Website is now in MAINTENANCE MODE' 
-                            : '✅ Website is now ONLINE');
+                        // Show correct message based on new status (not old state)
+                        if (newStatus) {
+                            alert('✅ Website is now ONLINE');
+                        } else {
+                            alert('🔴 Website is now in MAINTENANCE MODE');
+                        }
                     }, 500);
                 })
                 .catch(err => {
@@ -1644,7 +1646,13 @@
                     toggle.style.pointerEvents = 'auto';
                     toggle.style.opacity = '1';
                     
-                    alert('❌ Error: ' + err.message + '\n\nMake sure:\n1. You are logged in\n2. Firestore rules allow admin updates\n3. Your admin UID is correct');
+                    // Check if it's a permission error and provide helpful message
+                    if (err.code === 'permission-denied') {
+                        alert('❌ Permission Error!\n\nThis might happen if:\n1. Firestore is under heavy load\n2. There are too many rapid updates\n3. Firebase security rules need to reload\n\n⏰ Please wait 30 seconds and try again.');
+                        console.log('💡 TIP: Wait a moment and retry. This usually resolves itself.');
+                    } else {
+                        alert('❌ Error: ' + err.message + '\n\nPlease try again or check browser console for details.');
+                    }
                 });
         }
 
