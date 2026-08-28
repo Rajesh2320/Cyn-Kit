@@ -2120,6 +2120,18 @@
                         },
                         title: {
                             display: false
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'end',
+                            font: {
+                                weight: 'bold',
+                                size: 11
+                            },
+                            color: '#333',
+                            formatter: function(value) {
+                                return Math.round(value);
+                            }
                         }
                     },
                     scales: {
@@ -2134,7 +2146,29 @@
                             stacked: false
                         }
                     }
-                }
+                },
+                plugins: [{
+                    id: 'textCenter',
+                    afterDatasetsDraw(chart) {
+                        const { ctx, data, chartArea: { left, width } } = chart;
+                        ctx.font = 'bold 11px Arial';
+                        ctx.textAlign = 'right';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = '#333';
+
+                        chart.getDatasetMeta(0).data.forEach((datapoint, index) => {
+                            const { x, y } = datapoint.getProps(['x', 'y'], true);
+                            const value = Math.round(data.datasets[0].data[index]);
+                            ctx.fillText(value, x - 8, y);
+                        });
+
+                        chart.getDatasetMeta(1).data.forEach((datapoint, index) => {
+                            const { x, y } = datapoint.getProps(['x', 'y'], true);
+                            const value = Math.round(data.datasets[1].data[index]);
+                            ctx.fillText(value, x - 8, y);
+                        });
+                    }
+                }]
             });
 
             const pickup = mtdOrders.filter(o => o.deliveryType === 'pickup').length;
