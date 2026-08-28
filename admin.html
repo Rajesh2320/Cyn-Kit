@@ -1271,6 +1271,7 @@
                     <button class="btn-primary" onclick="markAsPaid()">✅ Mark Paid</button>
                     <button class="btn-dispute" onclick="showDisputeForm()">⚠️ Dispute</button>
                     <button class="btn-cancel" onclick="showCancelForm()">❌ Cancel</button>
+                    <button style="background: #6c757d; border: none; padding: 10px 16px; border-radius: 6px; color: white; cursor: pointer; font-weight: 600;" onclick="revertToPending()">↩️ Revert to Pending</button>
                 </div>
 
                 <div id="disputeForm" style="display: none; background: #fff5e6; padding: 16px; border-radius: 8px; margin-top: 16px; border: 1px solid #ffd699;">
@@ -2026,6 +2027,27 @@
                 .catch(err => {
                     alert('Error: ' + err.message);
                 });
+        }
+
+        function revertToPending() {
+            if (!confirm('↩️ Are you sure you want to revert this order back to Pending Payment?\n\nThe customer will need to upload payment proof again.')) {
+                return;
+            }
+
+            // Update status to pending_payment
+            db.collection('orders').doc(currentOrderId).update({ 
+                status: 'pending_payment',
+                disputeReason: null,
+                cancellationReason: null
+            })
+            .then(() => {
+                alert('↩️ Order reverted to PENDING PAYMENT\n\nCustomer can now upload payment proof again');
+                closeModal();
+                loadOrders();
+            })
+            .catch(err => {
+                alert('Error: ' + err.message);
+            });
         }
 
         function deleteOrder() {
