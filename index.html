@@ -2328,12 +2328,12 @@
                         }
 
                         if (order.status === 'dispute') {
-                            alert('⚠️ Order Status: DISPUTE\n\nOrder ID: ' + orderId + '\n\nReason: ' + (order.disputeReason || 'Not specified'));
+                            alert('⚠️ Order Status: DISPUTE\n\nOrder ID: ' + orderId + '\n\nReason: ' + (order.disputeReason || 'Not specified') + '\n\nEmail to us with your order id as subject if you have any clarifications on the same .');
                             return;
                         }
 
                         if (order.status === 'cancelled') {
-                            alert('❌ Order Cancelled\n\nOrder ID: ' + orderId + '\n\nReason: ' + (order.cancellationReason || 'Not specified'));
+                            alert('❌ Order Cancelled\n\nOrder ID: ' + orderId + '\n\nReason: ' + (order.cancellationReason || 'Not specified') + '\n\nEmail to us with your order id as subject if you have any clarifications on the same .');
                             return;
                         }
 
