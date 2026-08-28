@@ -1840,7 +1840,7 @@
                 // Format order items for email
                 let orderItemsHTML = '';
                 lineItems.forEach(item => {
-                    orderItemsHTML += `<div style="margin: 8px 0;"><strong>${item.name}</strong> × ${item.quantity} - ₹${item.unitPrice.toFixed(2)}</div>`;
+                    orderItemsHTML += `<p style="margin: 8px 0;"><strong>${item.name}</strong> × ${item.quantity} - ₹${item.unitPrice.toFixed(2)}</p>`;
                 });
 
                 // Format order date
@@ -1862,20 +1862,56 @@
                 const qrDataString = `upi://pay?pa=9884908910@hdfc&pn=CynthiasKitchen&am=${qrAmount}&tn=${orderData.orderId}`;
                 const qrCodeURL = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrDataString)}`;
 
-                // Prepare email parameters (EXACT match with template variables)
+                // BUILD COMPLETE EMAIL BODY AS HTML
+                const emailBody = `
+<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+    <h2 style="color: #28a745; text-align: center;">✅ Order Confirmed</h2>
+    
+    <p>Hi <strong>${orderData.customerName}</strong>,</p>
+    
+    <p>Thank you for placing your order with Cynthia's Kitchen! Your order has been received successfully. Please complete the payment within <strong>${deadlineTime}</strong> to confirm your order.</p>
+    
+    <div style="background: #e8f5e9; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0; border-radius: 4px;">
+        <h3 style="color: #2e7d32; margin-top: 0;">Order Details</h3>
+        <p><strong>Order ID:</strong> ${orderData.orderId}</p>
+        <p><strong>Order Date:</strong> ${orderDate}</p>
+        <p><strong>Delivery Type:</strong> ${orderData.deliveryType === 'pickup' ? '🏪 Pickup' : '🚚 Delivery'}</p>
+    </div>
+    
+    <div style="background: #f9f9f9; padding: 15px; margin: 20px 0; border-radius: 4px;">
+        <h3 style="margin-top: 0;">Items Ordered</h3>
+        ${orderItemsHTML}
+    </div>
+    
+    <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;">
+        <p><strong>Subtotal:</strong> ₹${orderData.subtotal.toFixed(2)}</p>
+        <p><strong>Delivery Charge:</strong> ₹${orderData.deliveryCharge.toFixed(2)}</p>
+        <p style="border-top: 2px solid #ffc107; padding-top: 10px; margin-top: 10px; font-size: 16px;"><strong>Total Amount:</strong> ₹${orderData.orderTotal.toFixed(2)}</p>
+    </div>
+    
+    <div style="background: #f0f0f0; padding: 15px; margin: 20px 0; border-radius: 4px; text-align: center;">
+        <h3 style="margin-top: 0;">Scan to Pay via UPI</h3>
+        <img src="${qrCodeURL}" alt="UPI QR Code" style="max-width: 200px; height: auto;">
+        <p style="font-size: 13px; color: #666; margin-top: 10px;">UPI ID: 9884908910@hdfc</p>
+    </div>
+    
+    <div style="background: #e3f2fd; border-left: 4px solid #0052cc; padding: 15px; margin: 20px 0; border-radius: 4px;">
+        <h3 style="color: #0052cc; margin-top: 0;">⏱️ Payment Deadline</h3>
+        <p>Please complete the payment by <strong>${deadlineTime}</strong> to confirm your order.</p>
+        <p>Upload your payment proof to track your order status.</p>
+    </div>
+    
+    <p style="color: #666; font-size: 13px;">If you have any questions, please reply to this email.</p>
+    
+    <p style="margin-top: 30px;">Regards<br><strong>Cynthia's Kitchen</strong></p>
+</div>
+                `;
+
+                // Prepare email parameters with only 3 fields
                 const templateParams = {
-                    customer_email: orderData.customerEmail,
-                    customer_name: orderData.customerName,
-                    order_id: orderData.orderId,
-                    order_date: orderDate,
-                    delivery_type: orderData.deliveryType === 'pickup' ? '🏪 Pickup' : '🚚 Delivery',
-                    order_items: orderItemsHTML,
-                    subtotal: orderData.subtotal.toFixed(2),
-                    delivery_charge: orderData.deliveryCharge.toFixed(2),
-                    order_total: orderData.orderTotal.toFixed(2),
-                    upi_id: '9884908910@hdfc',
-                    qr_code_url: qrCodeURL,
-                    payment_link: window.location.origin + window.location.pathname + '?orderid=' + orderData.orderId
+                    to_email: orderData.customerEmail,
+                    email_subject: '✅ Order Confirmed - ' + orderData.orderId,
+                    email_body: emailBody
                 };
 
                 console.log('📤 Sending email to:', templateParams.to_email);
