@@ -1121,13 +1121,16 @@
             const pincodeError = document.getElementById('pincodeError');
 
             if (!pincode) {
+                // Empty - show error with red border
+                pincodeError.textContent = 'Pincode is required';
+                pincodeError.classList.add('show');
+                pincodeField.classList.add('error');
                 deliveryChargeBox.classList.remove('show');
-                pincodeError.classList.remove('show');
-                pincodeField.classList.remove('error');
                 return;
             }
 
             if (!/^\d{6}$/.test(pincode)) {
+                // Invalid format - don't show error yet (still typing)
                 deliveryChargeBox.classList.remove('show');
                 pincodeError.classList.remove('show');
                 pincodeField.classList.remove('error');
@@ -1135,7 +1138,7 @@
             }
 
             if (!pincodeData[pincode]) {
-                // Show error immediately
+                // Not serviceable - show error with red border
                 pincodeError.textContent = 'The pin code is currently not serviceable by us. We apologize for the inconvenience caused';
                 pincodeError.classList.add('show');
                 pincodeField.classList.add('error');
@@ -1389,6 +1392,14 @@
             
             updateOrderSummary();
             switchView('checkoutView');
+            
+            // Immediately validate all fields to show red boxes for empty required fields
+            validateName();
+            validatePhone();
+            validateEmail();
+            validateAddress();
+            validatePincode();
+            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
