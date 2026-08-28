@@ -1802,27 +1802,93 @@
         }
 
         function goBackToStore() {
-            // SAVE checkout details AND cart items to sessionStorage before clearing
+            // Check if we're in payment screen (order already placed)
+            const isPaymentScreen = document.getElementById('qrSection').classList.contains('show') || 
+                                    document.getElementById('proofSection').classList.contains('show');
+            
+            // If in payment screen, do HARD RESET (order already placed)
+            if (isPaymentScreen) {
+                console.log('🔄 Hard reset after order placement');
+                
+                // CLEAR sessionStorage completely (order already submitted)
+                sessionStorage.removeItem('checkoutDetails');
+                
+                isSearchingOrder = false;
+                unlockOrderFields();
+                
+                // HARD CLEAR all customer form fields
+                document.getElementById('customerName').value = '';
+                document.getElementById('customerPhone').value = '';
+                document.getElementById('customerEmail').value = '';
+                document.getElementById('customerAddress').value = '';
+                document.getElementById('customerPincode').value = '';
+                document.getElementById('proofFile').value = '';
+                
+                // Clear search form
+                document.getElementById('searchOrderId').value = '';
+                document.getElementById('searchError').textContent = '';
+                document.getElementById('searchError').style.display = 'none';
+                
+                // HARD CLEAR cart completely
+                deliveryCharge = 0;
+                deliveryType = 'delivery';
+                Object.keys(cart).forEach(key => delete cart[key]);
+                cart = {};
+                
+                updateCartDisplay();
+                
+                // Re-enable Place Order button
+                document.getElementById('placeOrderBtn').disabled = false;
+                document.getElementById('placeOrderBtn').style.display = 'block';
+                
+                // Hide ALL payment sections
+                document.getElementById('qrSection').classList.remove('show');
+                document.getElementById('payBtn').classList.remove('show');
+                document.getElementById('proofSection').classList.remove('show');
+                document.getElementById('submitProofBtn').classList.remove('show');
+                document.getElementById('deliveryChargeLine').style.display = 'none';
+                
+                // Clear order ID
+                document.getElementById('orderIdDisplay').textContent = 'NEW ORDER';
+                
+                switchView('storeView');
+                
+                // Re-render products with empty cart
+                setTimeout(() => {
+                    if (allProducts && allProducts.length > 0) {
+                        displayProducts(allProducts);
+                    }
+                }, 10);
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                alert('✅ Order submitted! Your order ID has been generated.\n\nCart and details cleared. Ready for new order!');
+                
+                return;
+            }
+            
+            // NORMAL BACK (before order placed) - Keep details and cart
+            console.log('↩️ Normal back to store (keeping details)');
+            
+            // SAVE checkout details AND cart items to sessionStorage
             const checkoutDetails = {
                 name: document.getElementById('customerName').value,
                 phone: document.getElementById('customerPhone').value,
                 email: document.getElementById('customerEmail').value,
                 address: document.getElementById('customerAddress').value,
                 pincode: document.getElementById('customerPincode').value,
-                cart: cart  // SAVE cart items too!
+                cart: cart
             };
             
-            // Only save if at least one field has data (not empty checkout)
+            // Only save if at least one field has data
             if (checkoutDetails.name || checkoutDetails.phone || checkoutDetails.email || checkoutDetails.address || checkoutDetails.pincode || Object.keys(cart).length > 0) {
                 sessionStorage.setItem('checkoutDetails', JSON.stringify(checkoutDetails));
-                console.log('💾 Checkout details AND cart saved to sessionStorage:', checkoutDetails);
+                console.log('💾 Checkout details AND cart saved to sessionStorage');
             }
             
             isSearchingOrder = false;
             unlockOrderFields();
             
             // KEEP customer form fields - do NOT clear them!
-            // Customer details remain visible
             
             // Clear search form only
             document.getElementById('searchOrderId').value = '';
@@ -1832,9 +1898,6 @@
             // Reset delivery type (but keep cart!)
             deliveryCharge = 0;
             deliveryType = 'delivery';
-            
-            // DON'T clear cart - it will be visible in store view
-            // Just update display to show current cart items
             
             updateCartDisplay();
             
