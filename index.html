@@ -1065,6 +1065,90 @@
             console.log('Anonymous sign-in error:', err);
         });
 
+        // ============================================================
+        // HANDLE PAYMENT LINK FROM EMAIL (orderid query parameter)
+        // ============================================================
+        window.addEventListener('load', () => {
+            const params = new URLSearchParams(window.location.search);
+            const orderIdFromEmail = params.get('orderid');
+            
+            if (orderIdFromEmail) {
+                console.log('📧 Received order ID from email link:', orderIdFromEmail);
+                loadOrderForPaymentProof(orderIdFromEmail);
+            }
+        });
+
+        // Load existing order and show payment proof upload
+        function loadOrderForPaymentProof(orderId) {
+            db.collection('orders').doc(orderId).get()
+                .then(doc => {
+                    if (doc.exists) {
+                        const order = doc.data();
+                        currentOrderId = orderId;
+                        
+                        console.log('✅ Order loaded from email link:', orderId, order);
+                        
+                        // Check order status
+                        if (order.status === 'paid') {
+                            alert('✅ This order has already been paid!\n\nOrder ID: ' + orderId + '\n\nThank you for your order!');
+                            switchView('storeView');
+                            return;
+                        }
+                        
+                        if (order.status === 'payment_proof_submitted') {
+                            alert('✅ Payment proof already submitted!\n\nOrder ID: ' + orderId + '\n\nWe are reviewing your payment.');
+                            switchView('storeView');
+                            return;
+                        }
+                        
+                        // Switch to checkout view
+                        switchView('checkoutView');
+                        
+                        // Hide the entire form and show only payment section
+                        document.querySelector('.checkout-container').style.display = 'none';
+                        document.querySelector('.checkout-wrapper').style.gridTemplateColumns = '1fr';
+                        document.querySelector('.checkout-sidebar').style.width = '100%';
+                        
+                        // Show payment section with order ID
+                        document.getElementById('orderIdDisplay').textContent = orderId;
+                        
+                        // Generate QR code with order amount
+                        const orderTotal = order.orderTotal || 0;
+                        generateQRCode(orderTotal);
+                        
+                        document.getElementById('qrSection').classList.add('show');
+                        document.getElementById('proofSection').classList.add('show');
+                        
+                        // Show payment info message
+                        const proofSection = document.getElementById('proofSection');
+                        const existingInfo = proofSection.querySelector('.payment-info-message');
+                        if (existingInfo) existingInfo.remove();
+                        
+                        const infoDiv = document.createElement('div');
+                        infoDiv.className = 'payment-info-message';
+                        infoDiv.style.cssText = 'background: #e3f2fd; padding: 12px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #2196f3; color: #0d47a1; font-size: 13px; font-weight: 500;';
+                        infoDiv.innerHTML = '📧 <strong>Order from Email:</strong> You\'ve reopened this order from your email confirmation. Upload your payment proof below to complete verification.';
+                        proofSection.insertBefore(infoDiv, proofSection.firstChild);
+                        
+                        // Scroll to payment section
+                        setTimeout(() => {
+                            document.getElementById('proofSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 500);
+                        
+                        alert('✅ Order found!\n\nOrder ID: ' + orderId + '\n\nAmount: ₹' + orderTotal.toFixed(2) + '\n\nPlease upload your payment proof below.');
+                    } else {
+                        console.error('❌ Order not found:', orderId);
+                        alert('❌ Order not found. Please check the Order ID and try again.');
+                        switchView('storeView');
+                    }
+                })
+                .catch(err => {
+                    console.error('❌ Error loading order:', err);
+                    alert('❌ Error: ' + err.message);
+                    switchView('storeView');
+                });
+        }
+
         // Pincode-to-distance data (from Excel)
         const pincodeData = {"600016":1.0,"600032":2.3,"600061":4.8,"600088":2.0,"600069":16.4,"600015":4.5,"600083":5.6,"600035":6.7,"600091":7.0,"600024":8.1,"600017":7.6,"600078":6.7,"600085":7.7,"600094":9.2,"600028":10.3,"600070":11.0,"600026":7.0,"600020":8.5,"600043":8.0,"600075":10.8,"600087":9.0,"600092":9.6,"600018":8.0,"600029":10.9,"600113":9.4,"600004":11.4,"600034":10.2,"600106":9.2,"600041":12.7,"600090":10.5,"600066":27.8,"600014":15.1,"600107":12.1,"600042":6.5,"600089":4.2,"600006":9.4,"600067":37.0,"600030":13.2,"600040":14.0,"600096":11.8,"600116":9.1,"600002":14.1,"600005":15.7,"600010":13.7,"600044":10.0,"600008":13.5,"600097":13.1,"600007":14.7,"600064":13.3,"600122":13.4,"600050":14.4,"600023":17.4,"600003":18.3,"600049":15.7,"600095":11.5,"600009":17.9,"600012":17.4,"600082":18.8,"600001":19.7,"600077":17.7,"600045":14.5,"600011":22.0,"600119":20.7,"600013":21.7,"600073":17.5,"600100":12.3,"600099":18.5,"600126":19.5,"600039":24.3,"600021":22.8,"600053":18.7,"600048":22.8,"600118":22.0,"600081":24.8,"600063":18.5,"600056":15.0,"600060":25.0,"600054":25.0,"600019":28.4,"600052":30.2,"600130":20.0,"600062":27.0,"603202":27.0,"603103":30.0,"602105":35.0};
 
@@ -1903,6 +1987,8 @@
                     document.getElementById('payBtn').classList.add('show');
                     document.getElementById('proofSection').classList.add('show');
                     document.getElementById('submitProofBtn').classList.add('show');
+                    
+                    console.log('✅ Payment sections visible - scroll down to see upload proof');
                     
                     // Show order ID with email status
                     let alertMessage = '✅ Order created!\n\nOrder ID: ' + currentOrderId + '\n\n';
