@@ -1061,6 +1061,47 @@
         // ============================================================
         // REAL-TIME FIELD VALIDATION
         // ============================================================
+        // ============================================================
+        // FIELD VALIDATION HELPERS
+        // ============================================================
+        
+        function checkAllFieldsValidAndFocus() {
+            const name = document.getElementById('customerName').value.trim();
+            const phone = document.getElementById('customerPhone').value.trim();
+            const email = document.getElementById('customerEmail').value.trim();
+            const nameError = document.getElementById('customerName').parentElement;
+            const phoneError = document.getElementById('customerPhone').parentElement;
+            const emailError = document.getElementById('customerEmail').parentElement;
+            
+            // Check basic fields are valid (no error class)
+            const basicFieldsValid = name && phone && email && 
+                                     !nameError.classList.contains('error') &&
+                                     !phoneError.classList.contains('error') &&
+                                     !emailError.classList.contains('error');
+            
+            if (!basicFieldsValid) return; // Not ready yet
+            
+            // For pickup - only need name, phone, email
+            if (deliveryType !== 'delivery') {
+                document.getElementById('placeOrderBtn').focus();
+                return;
+            }
+            
+            // For delivery - also need address and pincode
+            const address = document.getElementById('customerAddress').value.trim();
+            const pincode = document.getElementById('customerPincode').value.trim();
+            const addressError = document.getElementById('customerAddress').parentElement;
+            const pincodeError = document.getElementById('customerPincode').parentElement;
+            
+            const deliveryFieldsValid = address && pincode &&
+                                       !addressError.classList.contains('error') &&
+                                       !pincodeError.classList.contains('error');
+            
+            if (deliveryFieldsValid) {
+                document.getElementById('placeOrderBtn').focus();
+            }
+        }
+        
         function validateName() {
             const name = document.getElementById('customerName').value.trim();
             const nameError = document.getElementById('nameError');
@@ -1073,6 +1114,7 @@
             } else {
                 nameError.classList.remove('show');
                 nameField.classList.remove('error');
+                checkAllFieldsValidAndFocus();
             }
         }
 
@@ -1092,6 +1134,7 @@
             } else {
                 phoneError.classList.remove('show');
                 phoneField.classList.remove('error');
+                checkAllFieldsValidAndFocus();
             }
         }
 
@@ -1111,6 +1154,8 @@
             } else {
                 emailError.classList.remove('show');
                 emailField.classList.remove('error');
+                // Check if all fields are valid and focus Place Order button
+                checkAllFieldsValidAndFocus();
             }
         }
 
@@ -1159,6 +1204,8 @@
             pincodeError.classList.remove('show');
             pincodeField.classList.remove('error');
             calculateDeliveryCharge();
+            // Check if all fields are valid and focus Place Order button
+            checkAllFieldsValidAndFocus();
         }
 
         function validateAddress() {
@@ -1182,6 +1229,7 @@
             } else {
                 addressError.classList.remove('show');
                 addressField.classList.remove('error');
+                checkAllFieldsValidAndFocus();
             }
         }
 
