@@ -1257,6 +1257,14 @@
                 <span id="noProofMessage" style="color: #999; font-size: 13px;">No payment proof uploaded</span>
             </div>
 
+            <!-- Display Reason for Dispute/Cancelled Orders -->
+            <div class="modal-section" id="reasonSection" style="display: none;">
+                <h3 id="reasonTitle"></h3>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 4px solid #ffc107;">
+                    <p id="reasonText" style="margin: 0; font-size: 14px;"></p>
+                </div>
+            </div>
+
             <div class="modal-section">
                 <h3>⚙️ Update Status</h3>
                 <div class="action-buttons">
@@ -1920,6 +1928,20 @@
             hideDisputeForm();
             hideCancelForm();
             
+            // Show reason section for dispute or cancelled orders
+            const reasonSection = document.getElementById('reasonSection');
+            if (currentOrder.status === 'dispute' && currentOrder.disputeReason) {
+                reasonSection.style.display = 'block';
+                document.getElementById('reasonTitle').textContent = '⚠️ Dispute Reason';
+                document.getElementById('reasonText').textContent = currentOrder.disputeReason;
+            } else if (currentOrder.status === 'cancelled' && currentOrder.cancellationReason) {
+                reasonSection.style.display = 'block';
+                document.getElementById('reasonTitle').textContent = '❌ Cancellation Reason';
+                document.getElementById('reasonText').textContent = currentOrder.cancellationReason;
+            } else {
+                reasonSection.style.display = 'none';
+            }
+            
             // Show status update buttons only for payment_proof_submitted orders
             const statusUpdateSection = document.getElementById('statusUpdateSection');
             if (currentOrder.status === 'payment_proof_submitted') {
@@ -1964,8 +1986,11 @@
             // Send conditional email for DISPUTE status with reason
             sendStatusUpdateEmail(currentOrder, 'dispute', reason)
                 .then((emailSent) => {
-                    // Update status in Firestore
-                    return db.collection('orders').doc(currentOrderId).update({ status: 'dispute' });
+                    // Update status AND reason in Firestore
+                    return db.collection('orders').doc(currentOrderId).update({ 
+                        status: 'dispute',
+                        disputeReason: reason
+                    });
                 })
                 .then(() => {
                     alert('⚠️ Order marked as DISPUTE\n\n✉️ Notification email sent to customer');
@@ -1987,8 +2012,11 @@
             // Send conditional email for CANCELLED status with reason
             sendStatusUpdateEmail(currentOrder, 'cancelled', reason)
                 .then((emailSent) => {
-                    // Update status in Firestore
-                    return db.collection('orders').doc(currentOrderId).update({ status: 'cancelled' });
+                    // Update status AND reason in Firestore
+                    return db.collection('orders').doc(currentOrderId).update({ 
+                        status: 'cancelled',
+                        cancellationReason: reason
+                    });
                 })
                 .then(() => {
                     alert('❌ Order marked as CANCELLED\n\n✉️ Cancellation email sent to customer');
