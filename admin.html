@@ -898,6 +898,37 @@
                     </div>
                 </div>
                 
+                <!-- ANNOUNCEMENT BANNER SECTION -->
+                <div style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); padding: 20px; border-radius: 8px; margin-bottom: 40px; color: white;">
+                    <div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                            <div>
+                                <h3 style="margin: 0 0 8px 0; font-size: 18px;">📢 Announcement Banner</h3>
+                                <p id="bannerStatusText" style="margin: 0; font-size: 14px; opacity: 0.9;">Loading...</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span id="bannerBadge" style="padding: 6px 12px; background: #4caf50; border-radius: 20px; font-weight: 600; font-size: 12px;">✅ ENABLED</span>
+                                <div class="toggle-switch" onclick="toggleBanner()">
+                                    <span class="toggle-slider" id="bannerToggle" style="display: inline-block; width: 50px; height: 26px; background: #4caf50; border-radius: 13px; position: relative; cursor: pointer; transition: all 0.3s; vertical-align: middle;">
+                                        <span id="bannerToggleCircle" style="display: inline-block; width: 22px; height: 22px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: all 0.3s;"></span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <textarea id="bannerMessage" placeholder="Type your announcement message here... e.g., 'Site shutting down in 10 minutes for maintenance. Pls complete your orders on time'" style="width: 100%; padding: 12px; border: 2px solid white; border-radius: 6px; font-family: Arial, sans-serif; font-size: 14px; resize: vertical; min-height: 80px; margin-bottom: 12px; box-sizing: border-box; color: #333;"></textarea>
+                        
+                        <div id="bannerPreview" style="background: white; color: #333; padding: 12px; border-radius: 6px; margin-bottom: 12px; font-size: 14px; min-height: 40px; display: flex; align-items: center; overflow: hidden;">
+                            <span style="opacity: 0.6;">Message preview will appear here...</span>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="updateBannerMessage()" style="background: white; color: #f57c00; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s;">✅ Update Message</button>
+                            <button onclick="clearBannerMessage()" style="background: rgba(255,255,255,0.3); color: white; border: 2px solid white; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s;">🗑️ Clear Message</button>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- MTD SECTION -->
                 <div style="margin-bottom: 40px;">
                     <h2 style="font-size: 18px; font-weight: 700; color: #1e1e2e; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 3px solid #28a745;">📅 This Month (MTD)</h2>
@@ -1538,8 +1569,154 @@
             setTimeout(() => startAutoRefresh(), 500);
             // Load website status
             setTimeout(() => loadWebsiteStatus(), 300);
+            // Load banner data
+            setTimeout(() => loadBannerData(), 300);
             // Debug auth on load
             setTimeout(() => debugAdminAuth(), 400);
+        }
+
+        // ANNOUNCEMENT BANNER FUNCTIONS
+        function loadBannerData() {
+            db.collection('siteSettings').doc('banner').get()
+                .then(doc => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        document.getElementById('bannerMessage').value = data.message || '';
+                        updateBannerPreview();
+                        updateBannerStatus(data.enabled !== false);
+                        console.log('✅ Banner data loaded');
+                    } else {
+                        updateBannerStatus(false);
+                        console.log('ℹ️ No banner data yet');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading banner:', err);
+                });
+            
+            // Add event listener for real-time preview
+            document.getElementById('bannerMessage').addEventListener('input', updateBannerPreview);
+        }
+
+        function updateBannerPreview() {
+            const message = document.getElementById('bannerMessage').value.trim();
+            const preview = document.getElementById('bannerPreview');
+            
+            if (message) {
+                preview.innerHTML = `<span style="color: #f57c00; font-weight: 600;">📢 ${message}</span>`;
+            } else {
+                preview.innerHTML = '<span style="opacity: 0.6;">Message preview will appear here...</span>';
+            }
+        }
+
+        function updateBannerStatus(isEnabled) {
+            const toggle = document.getElementById('bannerToggle');
+            const circle = document.getElementById('bannerToggleCircle');
+            const badge = document.getElementById('bannerBadge');
+            const statusText = document.getElementById('bannerStatusText');
+            
+            if (isEnabled) {
+                toggle.style.background = '#4caf50';
+                circle.style.left = '2px';
+                badge.textContent = '✅ ENABLED';
+                badge.style.background = '#4caf50';
+                statusText.textContent = 'Banner is visible to customers';
+            } else {
+                toggle.style.background = '#d32f2f';
+                circle.style.left = '26px';
+                badge.textContent = '❌ DISABLED';
+                badge.style.background = '#d32f2f';
+                statusText.textContent = 'Banner is hidden from customers';
+            }
+        }
+
+        function toggleBanner() {
+            db.collection('siteSettings').doc('banner').get()
+                .then(doc => {
+                    const isCurrentlyEnabled = !doc.exists || doc.data().enabled !== false;
+                    const newStatus = !isCurrentlyEnabled;
+                    
+                    return db.collection('siteSettings').doc('banner').set({
+                        enabled: newStatus,
+                        message: document.getElementById('bannerMessage').value || '',
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedBy: currentUser.email
+                    }, { merge: true }).then(() => newStatus);
+                })
+                .then((newStatus) => {
+                    updateBannerStatus(newStatus);
+                    console.log('✅ Banner toggled:', newStatus ? 'ENABLED' : 'DISABLED');
+                })
+                .catch(err => {
+                    console.error('Error toggling banner:', err);
+                    alert('❌ Error: ' + err.message);
+                });
+        }
+
+        function updateBannerMessage() {
+            const message = document.getElementById('bannerMessage').value.trim();
+            
+            if (!message) {
+                alert('⚠️ Please type a message before updating');
+                return;
+            }
+            
+            const toggle = document.getElementById('bannerToggle');
+            toggle.style.pointerEvents = 'none';
+            toggle.style.opacity = '0.6';
+            
+            db.collection('siteSettings').doc('banner').set({
+                message: message,
+                enabled: true,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedBy: currentUser.email
+            }, { merge: true })
+                .then(() => {
+                    updateBannerPreview();
+                    updateBannerStatus(true);
+                    toggle.style.pointerEvents = 'auto';
+                    toggle.style.opacity = '1';
+                    alert('✅ Banner message updated and enabled!');
+                    console.log('✅ Banner message saved');
+                })
+                .catch(err => {
+                    console.error('Error saving banner:', err);
+                    toggle.style.pointerEvents = 'auto';
+                    toggle.style.opacity = '1';
+                    alert('❌ Error: ' + err.message);
+                });
+        }
+
+        function clearBannerMessage() {
+            if (!confirm('🗑️ Clear the banner message? (Banner will be disabled)')) {
+                return;
+            }
+            
+            const toggle = document.getElementById('bannerToggle');
+            toggle.style.pointerEvents = 'none';
+            toggle.style.opacity = '0.6';
+            
+            db.collection('siteSettings').doc('banner').set({
+                message: '',
+                enabled: false,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedBy: currentUser.email
+            }, { merge: true })
+                .then(() => {
+                    document.getElementById('bannerMessage').value = '';
+                    updateBannerPreview();
+                    updateBannerStatus(false);
+                    toggle.style.pointerEvents = 'auto';
+                    toggle.style.opacity = '1';
+                    alert('✅ Banner cleared and disabled');
+                    console.log('✅ Banner cleared');
+                })
+                .catch(err => {
+                    console.error('Error clearing banner:', err);
+                    toggle.style.pointerEvents = 'auto';
+                    toggle.style.opacity = '1';
+                    alert('❌ Error: ' + err.message);
+                });
         }
 
         // WEBSITE STATUS FUNCTIONS
