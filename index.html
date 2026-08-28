@@ -1737,6 +1737,7 @@
 
                 // Prepare email parameters (EXACT match with template variables)
                 const templateParams = {
+                    customer_email: orderData.customerEmail,
                     customer_name: orderData.customerName,
                     order_id: orderData.orderId,
                     order_date: orderDate,
@@ -1747,8 +1748,7 @@
                     order_total: orderData.orderTotal.toFixed(2),
                     upi_id: '9884908910@hdfc',
                     qr_code_url: qrCodeURL,
-                    payment_link: window.location.origin + window.location.pathname + '?orderid=' + orderData.orderId,
-                    to_email: orderData.customerEmail
+                    payment_link: window.location.origin + window.location.pathname + '?orderid=' + orderData.orderId
                 };
 
                 console.log('📤 Sending email to:', templateParams.to_email);
