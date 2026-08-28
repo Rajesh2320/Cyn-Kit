@@ -1659,11 +1659,13 @@
                     document.getElementById('customerAddress').value = details.address || '';
                     document.getElementById('customerPincode').value = details.pincode || '';
                     
-                    // RESTORE cart items
+                    // MERGE cart items (old saved + new items)
                     if (details.cart && Object.keys(details.cart).length > 0) {
-                        cart = details.cart;
+                        // Merge: saved items + current items (current items take priority if same product)
+                        cart = { ...details.cart, ...cart };
                         updateCartDisplay();
-                        console.log('✅ Checkout details AND cart restored from sessionStorage');
+                        console.log('✅ Checkout details AND cart MERGED from sessionStorage');
+                        console.log('📦 Merged cart:', cart);
                     } else {
                         console.log('✅ Checkout details restored from sessionStorage');
                     }
