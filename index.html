@@ -1735,15 +1735,14 @@
                 const qrDataString = `upi://pay?pa=9884908910@hdfc&pn=CynthiasKitchen&am=${qrAmount}&tn=${orderData.orderId}`;
                 const qrCodeURL = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrDataString)}`;
 
-                // Prepare email parameters
+                // Prepare email parameters (matching template variable names)
                 const templateParams = {
                     to_email: orderData.customerEmail,
                     to_name: orderData.customerName,
                     customer_name: orderData.customerName,
-                    customer_email: orderData.customerEmail,
-                    customer_phone: orderData.customerPhone,
                     order_id: orderData.orderId,
                     order_date: orderDate,
+                    customer_phone: orderData.customerPhone,
                     delivery_type: orderData.deliveryType === 'pickup' ? '🏪 Pickup' : '🚚 Delivery',
                     delivery_address: orderData.deliveryAddress || 'N/A',
                     order_items: orderItemsHTML,
