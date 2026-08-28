@@ -2049,61 +2049,89 @@
         function drawCharts(mtdOrders) {
             // ===== 7-DAY SALES TREND =====
             const last7Days = {};
+            const orderCounts = {};
+            
+            // Initialize days
             for (let i = 6; i >= 0; i--) {
                 const date = new Date();
                 date.setDate(date.getDate() - i);
-                const dateStr = date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+                const dateStr = date.toLocaleDateString('en-IN', { dateStyle: 'short' });
                 last7Days[dateStr] = 0;
+                orderCounts[dateStr] = 0;
             }
 
+            // Calculate revenue and order count per day
             allOrders.forEach(order => {
                 if (order.timestamp) {
                     const orderDate = new Date(order.timestamp.toDate());
-                    const dateStr = orderDate.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+                    const dateStr = orderDate.toLocaleDateString('en-IN', { dateStyle: 'short' });
                     if (last7Days.hasOwnProperty(dateStr)) {
                         last7Days[dateStr] += order.orderTotal || 0;
+                        orderCounts[dateStr] += 1; // Count orders
                     }
                 }
             });
 
-            const salesData = Object.values(last7Days);
+            // Convert revenue to 100s
+            const revenueIn100s = Object.values(last7Days).map(val => val / 100);
+            const orderCountData = Object.values(orderCounts);
             const daysLabels = Object.keys(last7Days);
 
             if (salesTrendChart) salesTrendChart.destroy();
             const salesTrendCtx = document.getElementById('salesTrendChart').getContext('2d');
             salesTrendChart = new Chart(salesTrendCtx, {
-                type: 'line',
+                type: 'bar',
                 data: {
                     labels: daysLabels,
-                    datasets: [{
-                        label: 'Daily Sales',
-                        data: salesData,
-                        borderColor: '#ff9a56',
-                        backgroundColor: 'rgba(255, 154, 86, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#ff9a56',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 5,
-                        pointHoverRadius: 7
-                    }]
+                    datasets: [
+                        {
+                            label: 'revenue(100s)',
+                            data: revenueIn100s,
+                            backgroundColor: '#1f8f1f',
+                            borderColor: '#0d5c0d',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'order count',
+                            data: orderCountData,
+                            backgroundColor: '#ff9a56',
+                            borderColor: '#d4622a',
+                            borderWidth: 1
+                        }
+                    ]
                 },
                 options: {
+                    indexAxis: 'y', // Horizontal bars
                     responsive: true,
                     maintainAspectRatio: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
                     plugins: {
-                        legend: { display: true, position: 'top' }
+                        legend: { 
+                            display: true, 
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 15,
+                                padding: 15,
+                                font: { size: 12 }
+                            }
+                        },
+                        title: {
+                            display: false
+                        }
                     },
                     scales: {
-                        y: {
+                        x: {
                             beginAtZero: true,
+                            stacked: false,
                             ticks: {
-                                callback: function(value) {
-                                    return '₹' + (value / 1000).toFixed(0) + 'k';
-                                }
+                                stepSize: 5
                             }
+                        },
+                        y: {
+                            stacked: false
                         }
                     }
                 }
