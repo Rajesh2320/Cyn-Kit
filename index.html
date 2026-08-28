@@ -2428,7 +2428,13 @@
                         
                         // Display delivery charge if it exists
                         if (order.deliveryCharge > 0) {
-                            document.getElementById('deliveryChargeAmount').textContent = '₹' + order.deliveryCharge;
+                            document.getElementById('deliveryChargeAmount').textContent = '₹' + order.deliveryCharge.toFixed(2);
+                            document.getElementById('deliveryChargeBox').classList.add('show');
+                            document.getElementById('deliveryChargeLine').style.display = 'flex';
+                            document.getElementById('sidebarDeliveryCharge').textContent = '₹' + order.deliveryCharge.toFixed(2);
+                        } else {
+                            document.getElementById('deliveryChargeBox').classList.remove('show');
+                            document.getElementById('deliveryChargeLine').style.display = 'none';
                         }
 
                         // Show payment section
