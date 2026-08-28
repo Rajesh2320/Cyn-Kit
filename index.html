@@ -1092,12 +1092,16 @@
                         if (order.status === 'paid') {
                             alert('✅ This order has already been paid!\n\nOrder ID: ' + orderId + '\n\nThank you for your order!');
                             switchView('storeView');
+                            // Clean URL and remove query parameter
+                            window.history.replaceState({}, document.title, window.location.pathname);
                             return;
                         }
                         
                         if (order.status === 'payment_proof_submitted') {
                             alert('✅ Payment proof already submitted!\n\nOrder ID: ' + orderId + '\n\nWe are reviewing your payment.');
                             switchView('storeView');
+                            // Clean URL and remove query parameter
+                            window.history.replaceState({}, document.title, window.location.pathname);
                             return;
                         }
                         
@@ -1165,12 +1169,16 @@
                         console.error('❌ Order not found:', orderId);
                         alert('❌ Order not found. Please check the Order ID and try again.');
                         switchView('storeView');
+                        // Clean URL and remove query parameter
+                        window.history.replaceState({}, document.title, window.location.pathname);
                     }
                 })
                 .catch(err => {
                     console.error('❌ Error loading order:', err);
                     alert('❌ Error: ' + err.message);
                     switchView('storeView');
+                    // Clean URL and remove query parameter
+                    window.history.replaceState({}, document.title, window.location.pathname);
                 });
         }
 
