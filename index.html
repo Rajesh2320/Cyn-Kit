@@ -2171,6 +2171,69 @@
             window.location.href = upiString;
         }
 
+        // ============================================================
+        // COMPRESS IMAGE FOR FIRESTORE (Reduces size significantly)
+        // ============================================================
+        function compressImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = (event) => {
+                    const img = new Image();
+                    
+                    img.onload = () => {
+                        // Create canvas for compression
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        // Resize to max 800x800px
+                        const maxDimension = 800;
+                        if (width > height) {
+                            if (width > maxDimension) {
+                                height = (height * maxDimension) / width;
+                                width = maxDimension;
+                            }
+                        } else {
+                            if (height > maxDimension) {
+                                width = (width * maxDimension) / height;
+                                height = maxDimension;
+                            }
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = 'white'; // White background
+                        ctx.fillRect(0, 0, width, height);
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Compress to base64 (70% quality = much smaller size)
+                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                        console.log('📸 Image compressed: Original~' + file.size + 'KB → Compressed~' + (compressedBase64.length / 1024).toFixed(2) + 'KB');
+                        
+                        resolve(compressedBase64);
+                    };
+                    
+                    img.onerror = () => {
+                        reject(new Error('Failed to load image'));
+                    };
+                    
+                    img.src = event.target.result;
+                };
+                
+                reader.onerror = () => {
+                    reject(new Error('Failed to read file'));
+                };
+                
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ============================================================
+        // SUBMIT PAYMENT PROOF (With Image Compression)
+        // ============================================================
         async function submitPaymentProof() {
             const proofFile = document.getElementById('proofFile').files[0];
             if (!proofFile) {
@@ -2180,58 +2243,60 @@
 
             const submitBtn = document.getElementById('submitProofBtn');
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
+            submitBtn.textContent = 'Compressing & Submitting...';
 
-            const reader = new FileReader();
-            reader.onload = async () => {
-                try {
-                    // Step 1: Update Firestore with proof and status
-                    await db.collection('orders').doc(currentOrderId).update({
-                        proofBase64: reader.result,
-                        status: 'payment_proof_submitted',
-                        paymentSubmittedAt: new Date()
-                    });
+            try {
+                // Step 1: Compress image (reduces size from 5MB to ~50-100KB)
+                console.log('🖼️ Starting image compression...');
+                const compressedBase64 = await compressImage(proofFile);
+                console.log('✅ Image compression complete');
 
-                    console.log('✅ Firestore updated successfully');
+                // Step 2: Update Firestore with COMPRESSED proof and status
+                console.log('💾 Saving to Firestore...');
+                await db.collection('orders').doc(currentOrderId).update({
+                    proofBase64: compressedBase64,
+                    status: 'payment_proof_submitted',
+                    paymentSubmittedAt: new Date()
+                });
 
-                    // Step 2: Get the order details to send email
-                    const orderDoc = await db.collection('orders').doc(currentOrderId).get();
-                    const orderData = orderDoc.data();
+                console.log('✅ Firestore updated successfully');
 
-                    // Step 3: Send proof submitted confirmation email
-                    console.log('📧 Sending confirmation email...');
-                    const emailResult = await sendProofSubmittedEmail({
-                        orderId: currentOrderId,
-                        customerName: orderData.customerName,
-                        customerEmail: orderData.customerEmail,
-                        orderTotal: orderData.orderTotal,
-                        subtotal: orderData.subtotal,
-                        deliveryCharge: orderData.deliveryCharge,
-                        deliveryType: orderData.deliveryType
-                    });
+                // Step 3: Get the order details to send email
+                const orderDoc = await db.collection('orders').doc(currentOrderId).get();
+                const orderData = orderDoc.data();
 
-                    // Step 4: Show success message
-                    if (emailResult.success) {
-                        alert('✅ Payment proof submitted!\n\n📧 Confirmation email sent to ' + orderData.customerEmail + '\n\nYour order ID: ' + currentOrderId + '\n\nWe\'ll review and confirm shortly.');
-                    } else {
-                        alert('✅ Payment proof submitted!\n\n⚠️ Email notification could not be sent, but your proof was received.\n\nYour order ID: ' + currentOrderId + '\n\nWe\'ll review and confirm shortly.');
-                    }
+                // Step 4: Send proof submitted confirmation email
+                console.log('📧 Sending confirmation email...');
+                const emailResult = await sendProofSubmittedEmail({
+                    orderId: currentOrderId,
+                    customerName: orderData.customerName,
+                    customerEmail: orderData.customerEmail,
+                    orderTotal: orderData.orderTotal,
+                    subtotal: orderData.subtotal,
+                    deliveryCharge: orderData.deliveryCharge,
+                    deliveryType: orderData.deliveryType
+                });
 
-                    // Step 5: Reset and go back
-                    cart = {};
-                    updateCartDisplay();
-                    goBackToStore();
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Submit Payment Proof';
-
-                } catch (err) {
-                    alert('Error: ' + err.message);
-                    console.error('❌ Error in submitPaymentProof:', err);
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Submit Payment Proof';
+                // Step 5: Show success message
+                if (emailResult.success) {
+                    alert('✅ Payment proof submitted!\n\n📧 Confirmation email sent to ' + orderData.customerEmail + '\n\nYour order ID: ' + currentOrderId + '\n\nWe\'ll review and confirm shortly.');
+                } else {
+                    alert('✅ Payment proof submitted!\n\n⚠️ Email notification could not be sent, but your proof was received.\n\nYour order ID: ' + currentOrderId + '\n\nWe\'ll review and confirm shortly.');
                 }
-            };
-            reader.readAsDataURL(proofFile);
+
+                // Step 6: Reset and go back
+                cart = {};
+                updateCartDisplay();
+                goBackToStore();
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Payment Proof';
+
+            } catch (err) {
+                alert('❌ Error: ' + err.message + '\n\nMake sure the file is a valid image (JPG, PNG)');
+                console.error('❌ Error in submitPaymentProof:', err);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Payment Proof';
+            }
         }
 
         function searchOrder() {
