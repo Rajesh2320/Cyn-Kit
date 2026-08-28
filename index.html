@@ -1019,7 +1019,7 @@
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/build/es5/email.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/build/email.min.js"></script>
 
     <script>
         const firebaseConfig = {
@@ -1034,12 +1034,28 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Initialize EmailJS
-        emailjs.init('HPSdot11zdQnIcFkk'); // Public Key
+        // Initialize EmailJS when library is ready
+        let emailjsReady = false;
+        let EMAILJS_SERVICE_ID = 'service_19tle5c';
+        let EMAILJS_TEMPLATE_ID = 'order_confirmation';
 
-        // EmailJS Configuration
-        const EMAILJS_SERVICE_ID = 'service_19tle5c';
-        const EMAILJS_TEMPLATE_ID = 'order_confirmation';
+        function initializeEmailJS() {
+            if (typeof emailjs !== 'undefined' && !emailjsReady) {
+                try {
+                    emailjs.init('HPSdot11zdQnIcFkk'); // Public Key
+                    emailjsReady = true;
+                    console.log('EmailJS initialized successfully');
+                } catch (err) {
+                    console.error('Error initializing EmailJS:', err);
+                }
+            } else if (typeof emailjs === 'undefined') {
+                // Retry after a short delay
+                setTimeout(initializeEmailJS, 500);
+            }
+        }
+
+        // Initialize EmailJS
+        initializeEmailJS();
 
         // Sign in anonymously
         firebase.auth().signInAnonymously().catch(err => {
@@ -1683,6 +1699,12 @@
         // SEND ORDER CONFIRMATION EMAIL
         // ============================================================
         function sendOrderConfirmationEmail(orderData, lineItems) {
+            // Check if EmailJS is ready
+            if (typeof emailjs === 'undefined' || !emailjsReady) {
+                console.warn('EmailJS not ready yet, skipping email');
+                return;
+            }
+
             try {
                 // Format order items for email
                 let orderItemsHTML = '';
