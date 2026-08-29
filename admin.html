@@ -1887,18 +1887,46 @@
                         resetToggleState(toggle);
                     });
             } else {
-                // OPENING SITE - just update status
-                console.log('Opening site - no banner update needed');
+                // OPENING SITE - update status and clear banner
+                console.log('Opening site - clearing banner message');
                 
-                db.collection('siteSettings').doc('status').set({
-                    isOnline: newStatus,
+                // Clear banner first
+                db.collection('siteSettings').doc('banner').set({
+                    message: '',
+                    enabled: false,
                     lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
                     updatedBy: currentUser.email
                 }, { merge: true })
                     .then(() => {
+                        console.log('✅ Banner cleared');
+                        // Now update status
+                        return db.collection('siteSettings').doc('status').set({
+                            isOnline: newStatus,
+                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                            updatedBy: currentUser.email
+                        }, { merge: true });
+                    })
+                    .then(() => {
                         console.log('✅ Website status updated');
                         updateStatusUI(newStatus);
-                        alert('✅ Website is now ONLINE\n\nBanner has been disabled');
+                        
+                        // Clear banner UI
+                        const bannerMessageEl = document.getElementById('bannerMessage');
+                        if (bannerMessageEl) {
+                            bannerMessageEl.value = '';
+                        }
+                        
+                        // Disable banner toggle in UI
+                        let bannerToggle = document.getElementById('bannerToggle');
+                        if (bannerToggle && bannerToggle.style) {
+                            bannerToggle.style.background = '#ccc';
+                            const bannerCircle = document.getElementById('bannerToggleCircle');
+                            if (bannerCircle) {
+                                bannerCircle.style.left = '26px';
+                            }
+                        }
+                        
+                        alert('✅ Website is now ONLINE\n\n✅ Banner message cleared\n✅ Site fully operational');
                     })
                     .catch(err => {
                         console.error('❌ Error:', err);
