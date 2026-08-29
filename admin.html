@@ -1792,6 +1792,15 @@
                 return;
             }
 
+            // Use in-memory state (not UI)
+            const newStatus = !websiteIsOnline;
+            
+            // If toggling TO maintenance mode, require banner message
+            if (newStatus === false && !document.getElementById('bannerMessage').value.trim()) {
+                alert('⚠️ Please enter a message before closing the site!\n\nExample:\n"Site shutting down in 10 minutes for maintenance. Pls complete your orders on time"\n\nOr:\n"Site will be functional from 10:00 AM on 29th August 2026. Thanks for understanding."');
+                return;
+            }
+
             // Prevent rapid toggles (Firestore limit: 1 write per second)
             if (toggleInProgress) {
                 alert('⏳ Please wait a moment before toggling again');
@@ -1804,9 +1813,6 @@
             toggle.style.opacity = '0.6';
             toggleInProgress = true;
 
-            // Use in-memory state (not UI)
-            const newStatus = !websiteIsOnline;
-            
             console.log('🔄 Toggling from', websiteIsOnline ? 'ONLINE' : 'MAINTENANCE', 'to', newStatus ? 'ONLINE' : 'MAINTENANCE');
             
             // Update Firestore
@@ -1824,7 +1830,7 @@
                     if (newStatus) {
                         alert('✅ Website is now ONLINE');
                     } else {
-                        alert('🔴 Website is now in MAINTENANCE MODE');
+                        alert('🔴 Website is now in MAINTENANCE MODE\n\nCustomers will see:\n- Your message: "' + document.getElementById('bannerMessage').value + '"\n- Dimmed site with disabled buttons');
                     }
                 })
                 .catch(err => {
