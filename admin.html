@@ -1787,12 +1787,12 @@
         // CLEANUP STALE SESSIONS (Manual cleanup for admin)
         // ================================================================
         function cleanupStaleSessions() {
-            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-            console.log('🔍 Checking for stale sessions (older than 5 minutes)...');
-            console.log('   Cutoff time:', fiveMinutesAgo.toLocaleString());
+            const oneMinuteAgo = new Date(Date.now() - 1 * 60 * 1000);  // Changed from 5 to 1 minute
+            console.log('🔍 Checking for stale sessions (older than 1 minute)...');
+            console.log('   Cutoff time:', oneMinuteAgo.toLocaleString());
             
             db.collection('activeCustomers')
-                .where('lastSeen', '<', fiveMinutesAgo)
+                .where('lastSeen', '<', oneMinuteAgo)
                 .get()
                 .then(snapshot => {
                     console.log('📋 Found', snapshot.size, 'stale sessions to delete');
@@ -1826,11 +1826,11 @@
         console.log('🧹 Running initial stale session cleanup...');
         cleanupStaleSessions();
         
-        // Auto-cleanup every 5 minutes after that
+        // Auto-cleanup every 30 seconds (changed from 5 minutes)
         setInterval(() => {
             console.log('🧹 Running scheduled stale session cleanup...');
             cleanupStaleSessions();
-        }, 5 * 60 * 1000); // 5 minutes
+        }, 30 * 1000); // 30 seconds
 
         function loadActiveCustomers() {
             console.log('🔍 DEBUG: Starting loadActiveCustomers() listener...');
@@ -1917,6 +1917,9 @@
                     device: { mobile: mobileCount, desktop: desktopCount, tablet: tabletCount },
                     page: { store: pageStore, checkout: pageCheckout, payment: pagePayment, tracking: pageTracking }
                 });
+                
+                // Run cleanup after every update to catch stale sessions immediately
+                cleanupStaleSessions();
             }, err => {
                 console.error('❌ ERROR loading active customers:', err);
                 console.error('❌ Error code:', err.code);
