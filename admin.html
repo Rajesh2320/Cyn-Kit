@@ -1748,6 +1748,7 @@
 
         // Track current website status in memory
         let websiteIsOnline = true;
+        let toggleInProgress = false; // Prevent rapid toggles
 
         function loadWebsiteStatus() {
             db.collection('siteSettings').doc('status').get()
@@ -1791,10 +1792,17 @@
                 return;
             }
 
+            // Prevent rapid toggles (Firestore limit: 1 write per second)
+            if (toggleInProgress) {
+                alert('⏳ Please wait a moment before toggling again');
+                return;
+            }
+
             // Disable toggle during update
             const toggle = document.getElementById('toggleSlider');
             toggle.style.pointerEvents = 'none';
             toggle.style.opacity = '0.6';
+            toggleInProgress = true;
 
             // Use in-memory state (not UI)
             const newStatus = !websiteIsOnline;
@@ -1811,8 +1819,6 @@
                     console.log('✅ Firestore updated successfully');
                     // Update UI with new state
                     updateStatusUI(newStatus);
-                    toggle.style.pointerEvents = 'auto';
-                    toggle.style.opacity = '1';
                     
                     // Show correct message
                     if (newStatus) {
@@ -1823,15 +1829,21 @@
                 })
                 .catch(err => {
                     console.error('❌ Error updating status:', err);
-                    toggle.style.pointerEvents = 'auto';
-                    toggle.style.opacity = '1';
                     
                     if (err.code === 'permission-denied') {
-                        alert('❌ Permission Error!\n\nThis might happen if:\n1. Firestore rules restrict your access\n2. Your admin UID in rules is incorrect\n3. There are Firebase security issues\n\n⏰ Please wait 30 seconds and try again.');
-                        console.log('💡 TIP: Check your admin UID matches the Firestore rules.');
+                        alert('❌ Permission Error!\n\nThis might happen if:\n1. Firestore rules restrict your access\n2. You toggled too quickly (wait 1 second)\n3. Your admin UID in rules is incorrect\n\n⏰ Please wait a moment and try again.');
+                        console.log('💡 TIP: Firestore allows 1 write per second per document.');
                     } else {
                         alert('❌ Error: ' + err.message + '\n\nPlease try again or check browser console for details.');
                     }
+                })
+                .finally(() => {
+                    // Re-enable toggle after 1.5 seconds (safety margin)
+                    setTimeout(() => {
+                        toggle.style.pointerEvents = 'auto';
+                        toggle.style.opacity = '1';
+                        toggleInProgress = false;
+                    }, 1500);
                 });
         }
 
