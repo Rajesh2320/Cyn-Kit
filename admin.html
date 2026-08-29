@@ -1088,6 +1088,10 @@
                         <h3>📦 Top Products (MTD)</h3>
                         <canvas id="productsChart"></canvas>
                     </div>
+                    <div class="chart-container">
+                        <h3>⏰ Peak Order Time (MTD)</h3>
+                        <canvas id="peakTimeChart"></canvas>
+                    </div>
                 </div>
 
                 <!-- REPEAT CUSTOMERS & PEAK TIMES -->
@@ -1457,7 +1461,7 @@
         let allOrders = [];
         let currentOrderId = null;
         let currentOrder = null;
-        let deliveryChart, productsChart, salesTrendChart;
+        let deliveryChart, productsChart, salesTrendChart, peakTimeChart;
         let autoRefreshInterval = null;
         let lastRefreshTime = null;
 
@@ -2515,7 +2519,7 @@
                     labels: [`Pickup ${Math.round((pickup/total)*100)}%`, `Delivery ${Math.round((delivery/total)*100)}%`],
                     datasets: [{
                         data: [pickup, delivery],
-                        backgroundColor: ['#ff9a56', '#d4622a']
+                        backgroundColor: ['#FF9933', '#138808']  // Saffron for Pickup, Green for Delivery
                     }]
                 },
                 options: {
@@ -2563,6 +2567,78 @@
                     responsive: true,
                     maintainAspectRatio: true,
                     indexAxis: 'y'
+                }
+            });
+
+            // Peak Order Time Analysis (MTD)
+            const hourCounts = {};
+            for (let i = 0; i < 24; i++) {
+                hourCounts[i] = 0;
+            }
+            
+            mtdOrders.forEach(order => {
+                if (order.timestamp) {
+                    const orderDate = new Date(order.timestamp.toDate());
+                    const hour = orderDate.getHours();
+                    hourCounts[hour]++;
+                }
+            });
+
+            // Find peak hours (top 3)
+            const hourEntries = Object.entries(hourCounts).map(([hour, count]) => ({
+                hour: parseInt(hour),
+                count: count
+            }));
+            
+            hourEntries.sort((a, b) => b.count - a.count);
+            const topHours = hourEntries.slice(0, 3).sort((a, b) => a.hour - b.hour);
+            const allHours = Object.keys(hourCounts).map(h => `${h}:00`);
+            const allCounts = Object.values(hourCounts);
+
+            // Colors for peak time chart: Saffron, Green, Blue
+            const colors = ['#FF9933', '#138808', '#1E40AF'];  // Saffron, Green, Blue
+            const backgroundColor = allCounts.map((count, idx) => {
+                const hour = idx;
+                if (topHours.some(h => h.hour === hour)) {
+                    return colors[topHours.findIndex(h => h.hour === hour)];
+                }
+                return '#cccccc';  // Gray for non-peak hours
+            });
+
+            if (peakTimeChart) peakTimeChart.destroy();
+            const peakTimeCtx = document.getElementById('peakTimeChart').getContext('2d');
+            peakTimeChart = new Chart(peakTimeCtx, {
+                type: 'bar',
+                data: {
+                    labels: allHours,
+                    datasets: [{
+                        label: 'Orders',
+                        data: allCounts,
+                        backgroundColor: backgroundColor,
+                        borderColor: '#333',
+                        borderWidth: 0.5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                generateLabels: () => [
+                                    { text: `Peak 1: ${topHours[0]?.hour}:00 (${topHours[0]?.count} orders)`, fillStyle: colors[0] },
+                                    { text: `Peak 2: ${topHours[1]?.hour}:00 (${topHours[1]?.count} orders)`, fillStyle: colors[1] },
+                                    { text: `Peak 3: ${topHours[2]?.hour}:00 (${topHours[2]?.count} orders)`, fillStyle: colors[2] }
+                                ]
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
                 }
             });
         }
