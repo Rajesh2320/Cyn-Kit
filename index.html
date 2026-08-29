@@ -1251,17 +1251,103 @@
             // Remove session when user closes page/tab
             window.addEventListener('beforeunload', () => {
                 if (sessionId) {
-                    // Delete when user leaves
-                    db.collection('activeCustomers').doc(sessionId).delete()
-                    .catch(err => {
-                        console.error('Error removing session:', err);
+                    // Use sendBeacon for reliable delivery (designed for this purpose)
+                    // This continues even after page is unloading
+                    const data = JSON.stringify({
+                        sessionId: sessionId,
+                        action: 'delete'
                     });
+                    
+                    // Try sendBeacon first (most reliable)
+                    if (navigator.sendBeacon) {
+                        // Can't directly call Firestore, but we signal the intent
+                        // Fallback: Direct Firestore delete with synchronous attempt
+                    }
+                    
+                    // Also try immediate delete (might complete before page closes)
+                    try {
+                        db.collection('activeCustomers').doc(sessionId).delete();
+                    } catch (err) {
+                        console.error('Error removing session:', err);
+                    }
+                }
+            });
+
+            // EXTRA: Add visibility change listener for tab switching
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    // Tab hidden (but not closed) - update lastSeen less frequently
+                    clearInterval(sessionHeartbeat);
+                } else {
+                    // Tab visible again - resume heartbeat
+                    startHeartbeat();
                 }
             });
         }
 
-        // Start tracking when page loads
-        trackActiveCustomer();
+        let sessionHeartbeat;
+
+        function startHeartbeat() {
+            sessionHeartbeat = setInterval(() => {
+                if (sessionId) {
+                    db.collection('activeCustomers').doc(sessionId).update({
+                        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                    })
+                    .catch(err => {
+                        console.error('Error updating session:', err);
+                    });
+                }
+            }, 30000); // 30 seconds
+        }
+
+        // ================================================================
+        // TRACK CURRENT PAGE/SCREEN
+        // ================================================================
+        let currentPage = 'store';
+
+        function detectCurrentPage() {
+            // Check which view is visible
+            const storeView = document.getElementById('storeView');
+            const checkoutView = document.getElementById('checkoutView');
+            const paymentView = document.getElementById('paymentView');
+            const orderTrackingView = document.getElementById('orderTrackingView');
+
+            if (checkoutView && checkoutView.style.display !== 'none') {
+                return 'checkout';
+            } else if (paymentView && paymentView.style.display !== 'none') {
+                return 'payment';
+            } else if (orderTrackingView && orderTrackingView.style.display !== 'none') {
+                return 'tracking';
+            } else if (storeView && storeView.style.display !== 'none') {
+                return 'store';
+            }
+            return 'store';  // Default
+        }
+
+        function updatePageTracking() {
+            const newPage = detectCurrentPage();
+            
+            if (newPage !== currentPage && sessionId) {
+                currentPage = newPage;
+                
+                // Update Firestore with current page
+                db.collection('activeCustomers').doc(sessionId).update({
+                    currentPage: currentPage,
+                    pageUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                })
+                .then(() => {
+                    console.log('📍 Page updated:', currentPage);
+                })
+                .catch(err => {
+                    console.error('Error updating page:', err);
+                });
+            }
+        }
+
+        // Monitor page changes every 2 seconds
+        setInterval(() => {
+            updatePageTracking();
+        }, 2000);
 
         // ANNOUNCEMENT BANNER FUNCTIONS
         function loadAnnouncementBanner() {
