@@ -2404,8 +2404,8 @@
                 }
             });
 
-            // Convert revenue to 100s
-            const revenueIn100s = Object.values(last7Days).map(val => val / 100);
+            // Convert revenue to 1000s (for chart readability)
+            const revenueIn1000s = Object.values(last7Days).map(val => val / 1000);
             const orderCountData = Object.values(orderCounts);
             const daysLabels = Object.keys(last7Days);
 
@@ -2417,8 +2417,8 @@
                     labels: daysLabels,
                     datasets: [
                         {
-                            label: 'revenue(100s)',
-                            data: revenueIn100s,
+                            label: 'revenue(₹ 1000s)',
+                            data: revenueIn1000s,
                             backgroundColor: '#1f8f1f',
                             borderColor: '#0d5c0d',
                             borderWidth: 1
