@@ -1193,6 +1193,76 @@
         // Check website status as soon as Firebase is ready
         checkWebsiteStatus();
 
+        // ================================================================
+        // TRACK ACTIVE CUSTOMERS
+        // ================================================================
+        let sessionId = null;
+
+        function detectDeviceType() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            
+            // Check for mobile
+            if (/mobile|android|iphone|ipad|phone|tablet|kindle|blackberry|windows phone/.test(userAgent)) {
+                return 'mobile';
+            }
+            // Check for tablet
+            else if (/tablet|ipad|playbook|silk|nexus 7|nexus 10|xoom|kindle/.test(userAgent)) {
+                return 'tablet';
+            }
+            // Default to desktop
+            else {
+                return 'desktop';
+            }
+        }
+
+        function trackActiveCustomer() {
+            const deviceType = detectDeviceType();
+            
+            // Generate unique session ID for this customer
+            sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // Add to activeCustomers collection with device type
+            db.collection('activeCustomers').doc(sessionId).set({
+                sessionId: sessionId,
+                joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+                deviceType: deviceType,  // 'mobile', 'tablet', or 'desktop'
+                userAgent: navigator.userAgent
+            })
+            .then(() => {
+                console.log('✅ Customer session tracked:', sessionId, '| Device:', deviceType);
+            })
+            .catch(err => {
+                console.error('Error tracking customer:', err);
+            });
+
+            // Update lastSeen every 30 seconds (keep session alive)
+            setInterval(() => {
+                if (sessionId) {
+                    db.collection('activeCustomers').doc(sessionId).update({
+                        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                    })
+                    .catch(err => {
+                        console.error('Error updating session:', err);
+                    });
+                }
+            }, 30000); // 30 seconds
+
+            // Remove session when user closes page/tab
+            window.addEventListener('beforeunload', () => {
+                if (sessionId) {
+                    // Delete when user leaves
+                    db.collection('activeCustomers').doc(sessionId).delete()
+                    .catch(err => {
+                        console.error('Error removing session:', err);
+                    });
+                }
+            });
+        }
+
+        // Start tracking when page loads
+        trackActiveCustomer();
+
         // ANNOUNCEMENT BANNER FUNCTIONS
         function loadAnnouncementBanner() {
             db.collection('siteSettings').doc('banner').get()
