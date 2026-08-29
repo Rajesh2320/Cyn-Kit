@@ -912,7 +912,7 @@
                         </div>
 
                         <!-- Device Breakdown -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 2px solid rgba(255,255,255,0.3);">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 2px solid rgba(255,255,255,0.3); border-bottom: 2px solid rgba(255,255,255,0.3); padding-bottom: 16px;">
                             <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 6px; text-align: center;">
                                 <div style="font-size: 12px; opacity: 0.8;">📱 Mobile</div>
                                 <div id="mobileCount" style="font-size: 28px; font-weight: 700; margin-top: 4px;">0</div>
@@ -924,6 +924,26 @@
                             <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 6px; text-align: center;">
                                 <div style="font-size: 12px; opacity: 0.8;">📱 Tablet</div>
                                 <div id="tabletCount" style="font-size: 28px; font-weight: 700; margin-top: 4px;">0</div>
+                            </div>
+                        </div>
+
+                        <!-- Page Breakdown -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-top: 16px;">
+                            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 6px; text-align: center;">
+                                <div style="font-size: 11px; opacity: 0.8;">🛒 Store</div>
+                                <div id="pageStore" style="font-size: 24px; font-weight: 700; margin-top: 4px;">0</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 6px; text-align: center;">
+                                <div style="font-size: 11px; opacity: 0.8;">📦 Checkout</div>
+                                <div id="pageCheckout" style="font-size: 24px; font-weight: 700; margin-top: 4px;">0</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 6px; text-align: center;">
+                                <div style="font-size: 11px; opacity: 0.8;">💳 Payment</div>
+                                <div id="pagePayment" style="font-size: 24px; font-weight: 700; margin-top: 4px;">0</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 6px; text-align: center;">
+                                <div style="font-size: 11px; opacity: 0.8;">📍 Tracking</div>
+                                <div id="pageTracking" style="font-size: 24px; font-weight: 700; margin-top: 4px;">0</div>
                             </div>
                         </div>
                     </div>
@@ -1763,6 +1783,43 @@
         // ================================================================
         // LOAD ACTIVE CUSTOMERS COUNT WITH DEVICE BREAKDOWN
         // ================================================================
+        // ================================================================
+        // CLEANUP STALE SESSIONS (Manual cleanup for admin)
+        // ================================================================
+        function cleanupStaleSessions() {
+            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+            
+            db.collection('activeCustomers')
+                .where('lastSeen', '<', fiveMinutesAgo)
+                .get()
+                .then(snapshot => {
+                    let deletedCount = 0;
+                    
+                    snapshot.forEach(doc => {
+                        doc.ref.delete()
+                            .then(() => {
+                                deletedCount++;
+                                console.log('✅ Deleted stale session:', doc.id);
+                            })
+                            .catch(err => {
+                                console.error('Error deleting session:', err);
+                            });
+                    });
+                    
+                    if (deletedCount > 0) {
+                        console.log('🧹 Cleaned up', deletedCount, 'stale sessions');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error cleaning up sessions:', err);
+                });
+        }
+
+        // Auto-cleanup every 5 minutes
+        setInterval(() => {
+            cleanupStaleSessions();
+        }, 5 * 60 * 1000);
+
         function loadActiveCustomers() {
             // Listen for changes in activeCustomers collection
             db.collection('activeCustomers').onSnapshot(snapshot => {
@@ -1770,18 +1827,35 @@
                 let mobileCount = 0;
                 let desktopCount = 0;
                 let tabletCount = 0;
+                let pageStore = 0;
+                let pageCheckout = 0;
+                let pagePayment = 0;
+                let pageTracking = 0;
                 
-                // Count by device type
+                // Count by device type and page
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const deviceType = data.deviceType || 'desktop';
+                    const currentPage = data.currentPage || 'store';
                     
+                    // Count by device
                     if (deviceType === 'mobile') {
                         mobileCount++;
                     } else if (deviceType === 'tablet') {
                         tabletCount++;
                     } else {
                         desktopCount++;
+                    }
+                    
+                    // Count by page
+                    if (currentPage === 'store') {
+                        pageStore++;
+                    } else if (currentPage === 'checkout') {
+                        pageCheckout++;
+                    } else if (currentPage === 'payment') {
+                        pagePayment++;
+                    } else if (currentPage === 'tracking') {
+                        pageTracking++;
                     }
                 });
                 
@@ -1812,7 +1886,22 @@
                 if (desktopEl) desktopEl.textContent = desktopCount;
                 if (tabletEl) tabletEl.textContent = tabletCount;
                 
-                console.log('👥 Active customers:', { total, mobile: mobileCount, desktop: desktopCount, tablet: tabletCount });
+                // Update page counts
+                const storeEl = document.getElementById('pageStore');
+                const checkoutEl = document.getElementById('pageCheckout');
+                const paymentEl = document.getElementById('pagePayment');
+                const trackingEl = document.getElementById('pageTracking');
+                
+                if (storeEl) storeEl.textContent = pageStore;
+                if (checkoutEl) checkoutEl.textContent = pageCheckout;
+                if (paymentEl) paymentEl.textContent = pagePayment;
+                if (trackingEl) trackingEl.textContent = pageTracking;
+                
+                console.log('👥 Active customers:', { 
+                    total, 
+                    device: { mobile: mobileCount, desktop: desktopCount, tablet: tabletCount },
+                    page: { store: pageStore, checkout: pageCheckout, payment: pagePayment, tracking: pageTracking }
+                });
             }, err => {
                 console.error('Error loading active customers:', err);
                 const textEl = document.getElementById('activeCustomersText');
