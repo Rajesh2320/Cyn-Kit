@@ -1795,12 +1795,32 @@
             // Use in-memory state (not UI)
             const newStatus = !websiteIsOnline;
             
-            // If toggling TO maintenance mode, require banner message
-            if (newStatus === false && !document.getElementById('bannerMessage').value.trim()) {
-                alert('⚠️ Please enter a message before closing the site!\n\nExample:\n"Site shutting down in 10 minutes for maintenance. Pls complete your orders on time"\n\nOr:\n"Site will be functional from 10:00 AM on 29th August 2026. Thanks for understanding."');
+            // If toggling TO maintenance mode, prompt for message
+            if (newStatus === false) {
+                const message = prompt(
+                    '📢 Enter the message customers will see:\n\n' +
+                    'Examples:\n' +
+                    '• "Site closing in 10 minutes for maintenance. Pls complete orders on time"\n' +
+                    '• "Site will reopen at 10:00 AM tomorrow. Sorry for inconvenience"\n' +
+                    '• "Server maintenance in progress. Back online in 30 minutes"'
+                );
+                
+                // User cancelled or left empty
+                if (!message || !message.trim()) {
+                    console.log('🚫 Site closure cancelled - no message provided');
+                    return;
+                }
+                
+                // Toggle with message
+                performToggle(newStatus, message.trim());
                 return;
             }
+            
+            // If toggling back ONLINE, no message needed
+            performToggle(newStatus, null);
+        }
 
+        function performToggle(newStatus, bannerMessage) {
             // Prevent rapid toggles (Firestore limit: 1 write per second)
             if (toggleInProgress) {
                 alert('⏳ Please wait a moment before toggling again');
@@ -1815,29 +1835,59 @@
 
             console.log('🔄 Toggling from', websiteIsOnline ? 'ONLINE' : 'MAINTENANCE', 'to', newStatus ? 'ONLINE' : 'MAINTENANCE');
             
-            // Update Firestore
-            db.collection('siteSettings').doc('status').set({
+            // Build Firestore operations
+            const updates = {
                 isOnline: newStatus,
                 lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
                 updatedBy: currentUser.email
-            }, { merge: true })
+            };
+            
+            // If going to maintenance with message, update banner too
+            if (!newStatus && bannerMessage) {
+                updates.withBanner = true;
+                updates.bannerMessage = bannerMessage;
+            }
+            
+            // Update website status
+            db.collection('siteSettings').doc('status').set(updates, { merge: true })
+                .then(() => {
+                    console.log('✅ Website status updated');
+                    
+                    // If closing site with message, also update banner
+                    if (!newStatus && bannerMessage) {
+                        return db.collection('siteSettings').doc('banner').set({
+                            message: bannerMessage,
+                            enabled: true,
+                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                            updatedBy: currentUser.email
+                        }, { merge: true });
+                    }
+                })
                 .then(() => {
                     console.log('✅ Firestore updated successfully');
                     // Update UI with new state
                     updateStatusUI(newStatus);
                     
+                    // Update banner textarea if closing
+                    if (!newStatus && bannerMessage) {
+                        document.getElementById('bannerMessage').value = bannerMessage;
+                        const bannerToggle = document.getElementById('bannerToggle');
+                        bannerToggle.style.background = '#4caf50';
+                        document.getElementById('bannerCircle').style.left = '2px';
+                    }
+                    
                     // Show correct message
                     if (newStatus) {
-                        alert('✅ Website is now ONLINE');
+                        alert('✅ Website is now ONLINE\n\nBanner has been disabled');
                     } else {
-                        alert('🔴 Website is now in MAINTENANCE MODE\n\nCustomers will see:\n- Your message: "' + document.getElementById('bannerMessage').value + '"\n- Dimmed site with disabled buttons');
+                        alert('🔴 Website is now in MAINTENANCE MODE\n\n📢 Customer message:\n"' + bannerMessage + '"\n\n✅ Banner automatically enabled\n✅ Site disabled\n✅ All buttons disabled for customers');
                     }
                 })
                 .catch(err => {
                     console.error('❌ Error updating status:', err);
                     
                     if (err.code === 'permission-denied') {
-                        alert('❌ Permission Error!\n\nThis might happen if:\n1. Firestore rules restrict your access\n2. You toggled too quickly (wait 1 second)\n3. Your admin UID in rules is incorrect\n\n⏰ Please wait a moment and try again.');
+                        alert('❌ Permission Error!\n\nPlease wait a moment and try again.');
                         console.log('💡 TIP: Firestore allows 1 write per second per document.');
                     } else {
                         alert('❌ Error: ' + err.message + '\n\nPlease try again or check browser console for details.');
