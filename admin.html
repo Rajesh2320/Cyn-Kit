@@ -1788,37 +1788,49 @@
         // ================================================================
         function cleanupStaleSessions() {
             const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+            console.log('🔍 Checking for stale sessions (older than 5 minutes)...');
+            console.log('   Cutoff time:', fiveMinutesAgo.toLocaleString());
             
             db.collection('activeCustomers')
                 .where('lastSeen', '<', fiveMinutesAgo)
                 .get()
                 .then(snapshot => {
+                    console.log('📋 Found', snapshot.size, 'stale sessions to delete');
                     let deletedCount = 0;
                     
                     snapshot.forEach(doc => {
+                        const data = doc.data();
+                        console.log('   Deleting stale session:', doc.id, 
+                                  '(lastSeen:', new Date(data.lastSeen.seconds * 1000).toLocaleString() + ')');
+                        
                         doc.ref.delete()
                             .then(() => {
                                 deletedCount++;
-                                console.log('✅ Deleted stale session:', doc.id);
+                                console.log('   ✅ Deleted:', doc.id);
                             })
                             .catch(err => {
-                                console.error('Error deleting session:', err);
+                                console.error('   ❌ Error deleting session:', doc.id, err.message);
                             });
                     });
                     
-                    if (deletedCount > 0) {
-                        console.log('🧹 Cleaned up', deletedCount, 'stale sessions');
+                    if (snapshot.size === 0) {
+                        console.log('✅ No stale sessions found - everything is fresh!');
                     }
                 })
                 .catch(err => {
-                    console.error('Error cleaning up sessions:', err);
+                    console.error('❌ Error checking stale sessions:', err.message);
                 });
         }
 
-        // Auto-cleanup every 5 minutes
+        // Cleanup stale sessions immediately on page load
+        console.log('🧹 Running initial stale session cleanup...');
+        cleanupStaleSessions();
+        
+        // Auto-cleanup every 5 minutes after that
         setInterval(() => {
+            console.log('🧹 Running scheduled stale session cleanup...');
             cleanupStaleSessions();
-        }, 5 * 60 * 1000);
+        }, 5 * 60 * 1000); // 5 minutes
 
         function loadActiveCustomers() {
             console.log('🔍 DEBUG: Starting loadActiveCustomers() listener...');
