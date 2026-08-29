@@ -1746,12 +1746,15 @@
             });
         }
 
+        // Track current website status in memory
+        let websiteIsOnline = true;
+
         function loadWebsiteStatus() {
             db.collection('siteSettings').doc('status').get()
                 .then(doc => {
-                    const isOnline = !doc.exists || doc.data().isOnline !== false;
-                    updateStatusUI(isOnline);
-                    console.log('✅ Website status loaded:', isOnline ? 'ONLINE' : 'MAINTENANCE');
+                    websiteIsOnline = !doc.exists || doc.data().isOnline !== false;
+                    updateStatusUI(websiteIsOnline);
+                    console.log('✅ Website status loaded:', websiteIsOnline ? 'ONLINE' : 'MAINTENANCE');
                 })
                 .catch(err => {
                     console.error('Error loading status:', err);
@@ -1760,6 +1763,7 @@
         }
 
         function updateStatusUI(isOnline) {
+            websiteIsOnline = isOnline; // Update in-memory state
             const toggle = document.getElementById('toggleSlider');
             const circle = document.getElementById('toggleCircle');
             const badge = document.getElementById('statusBadge');
@@ -1792,13 +1796,12 @@
             toggle.style.pointerEvents = 'none';
             toggle.style.opacity = '0.6';
 
-            // Check current state from UI
-            const isCurrentlyOnline = toggle.style.background === '#4caf50';
-            const newStatus = !isCurrentlyOnline; // Toggle
+            // Use in-memory state (not UI)
+            const newStatus = !websiteIsOnline;
             
-            console.log('🔄 Toggling from', isCurrentlyOnline ? 'ONLINE' : 'MAINTENANCE', 'to', newStatus ? 'ONLINE' : 'MAINTENANCE');
+            console.log('🔄 Toggling from', websiteIsOnline ? 'ONLINE' : 'MAINTENANCE', 'to', newStatus ? 'ONLINE' : 'MAINTENANCE');
             
-            // Use merge to avoid permission issues - don't do .get() first!
+            // Update Firestore
             db.collection('siteSettings').doc('status').set({
                 isOnline: newStatus,
                 lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
@@ -1806,12 +1809,12 @@
             }, { merge: true })
                 .then(() => {
                     console.log('✅ Firestore updated successfully');
-                    // Immediately update UI
+                    // Update UI with new state
                     updateStatusUI(newStatus);
                     toggle.style.pointerEvents = 'auto';
                     toggle.style.opacity = '1';
                     
-                    // Show correct message based on new status
+                    // Show correct message
                     if (newStatus) {
                         alert('✅ Website is now ONLINE');
                     } else {
@@ -1820,11 +1823,9 @@
                 })
                 .catch(err => {
                     console.error('❌ Error updating status:', err);
-                    // Re-enable toggle
                     toggle.style.pointerEvents = 'auto';
                     toggle.style.opacity = '1';
                     
-                    // Check if it's a permission error and provide helpful message
                     if (err.code === 'permission-denied') {
                         alert('❌ Permission Error!\n\nThis might happen if:\n1. Firestore rules restrict your access\n2. Your admin UID in rules is incorrect\n3. There are Firebase security issues\n\n⏰ Please wait 30 seconds and try again.');
                         console.log('💡 TIP: Check your admin UID matches the Firestore rules.');
