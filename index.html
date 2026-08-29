@@ -1098,7 +1098,7 @@
                     
                     if (!isOnline) {
                         // Website is in maintenance mode
-                        showMaintenanceMessage();
+                        enableMaintenanceMode();
                     }
                     console.log('✅ Website status checked:', isOnline ? 'ONLINE' : 'MAINTENANCE');
                 })
@@ -1108,26 +1108,56 @@
                 });
         }
 
-        function showMaintenanceMessage() {
-            // Hide all main content
-            document.body.innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                    <div style="background: white; border-radius: 12px; padding: 40px; text-align: center; max-width: 500px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-                        <div style="font-size: 80px; margin-bottom: 20px;">🔧</div>
-                        <h1 style="font-size: 32px; color: #333; margin: 0 0 16px 0; font-weight: 700;">Website Maintenance</h1>
-                        <p style="font-size: 16px; color: #666; margin: 0 0 24px 0; line-height: 1.6;">
-                            The site has been closed for maintenance.<br>
-                            Apologies for the inconvenience caused.<br>
-                            Please try after some time.
-                        </p>
-                        <button onclick="location.reload()" style="background: #667eea; color: white; border: none; padding: 12px 30px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
-                            🔄 Refresh & Try Again
-                        </button>
-                    </div>
-                </div>
+        function enableMaintenanceMode() {
+            // Disable all interactive elements
+            disableAllButtons();
+            disableAllInputs();
+            
+            // Add maintenance overlay styling
+            const style = document.createElement('style');
+            style.textContent = `
+                body.maintenance-mode {
+                    opacity: 0.7;
+                    pointer-events: none;
+                }
+                
+                body.maintenance-mode .header-container,
+                body.maintenance-mode .store-view,
+                body.maintenance-mode .sidebar {
+                    opacity: 0.7;
+                }
+                
+                #announcementBanner {
+                    opacity: 1 !important;
+                    pointer-events: auto !important;
+                }
             `;
-            // Stop all further execution
-            throw new Error('Website is in maintenance mode');
+            document.head.appendChild(style);
+            
+            // Add maintenance mode class
+            document.body.classList.add('maintenance-mode');
+            
+            // Show banner
+            loadAnnouncementBanner();
+            
+            console.log('🔧 Maintenance mode enabled - all interactive elements disabled');
+        }
+
+        function disableAllButtons() {
+            document.querySelectorAll('button').forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+                btn.title = 'Site is in maintenance mode';
+            });
+        }
+
+        function disableAllInputs() {
+            document.querySelectorAll('input, textarea, select').forEach(input => {
+                input.disabled = true;
+                input.style.opacity = '0.5';
+                input.style.cursor = 'not-allowed';
+            });
         }
 
         // Check website status as soon as Firebase is ready
