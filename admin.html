@@ -1821,8 +1821,11 @@
         }, 5 * 60 * 1000);
 
         function loadActiveCustomers() {
+            console.log('🔍 DEBUG: Starting loadActiveCustomers() listener...');
+            
             // Listen for changes in activeCustomers collection
             db.collection('activeCustomers').onSnapshot(snapshot => {
+                console.log('📊 Snapshot received! Total docs:', snapshot.size);
                 const total = snapshot.size;
                 let mobileCount = 0;
                 let desktopCount = 0;
@@ -1903,10 +1906,16 @@
                     page: { store: pageStore, checkout: pageCheckout, payment: pagePayment, tracking: pageTracking }
                 });
             }, err => {
-                console.error('Error loading active customers:', err);
+                console.error('❌ ERROR loading active customers:', err);
+                console.error('❌ Error code:', err.code);
+                console.error('❌ Error message:', err.message);
+                console.error('🔧 Troubleshooting:');
+                console.error('   1. Check Firestore Rules - does activeCustomers allow reads?');
+                console.error('   2. Are Rules syntax correct?');
+                console.error('   3. Open Firebase Console → Firestore → Rules');
                 const textEl = document.getElementById('activeCustomersText');
                 if (textEl) {
-                    textEl.textContent = 'Error tracking customers';
+                    textEl.textContent = 'Error: ' + err.message;
                 }
             });
         }
