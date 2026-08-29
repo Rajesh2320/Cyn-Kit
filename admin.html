@@ -897,6 +897,37 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- ACTIVE CUSTOMERS SECTION -->
+                <div style="background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%); padding: 20px; border-radius: 8px; margin-bottom: 40px; color: white;">
+                    <div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                            <div>
+                                <h3 style="margin: 0 0 8px 0; font-size: 18px;">👥 Active Customers</h3>
+                                <p id="activeCustomersText" style="margin: 0; font-size: 14px; opacity: 0.9;">Tracking...</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div id="activeCustomersCount" style="font-size: 48px; font-weight: 700; line-height: 1;">0</div>
+                            </div>
+                        </div>
+
+                        <!-- Device Breakdown -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 2px solid rgba(255,255,255,0.3);">
+                            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 6px; text-align: center;">
+                                <div style="font-size: 12px; opacity: 0.8;">📱 Mobile</div>
+                                <div id="mobileCount" style="font-size: 28px; font-weight: 700; margin-top: 4px;">0</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 6px; text-align: center;">
+                                <div style="font-size: 12px; opacity: 0.8;">💻 Desktop</div>
+                                <div id="desktopCount" style="font-size: 28px; font-weight: 700; margin-top: 4px;">0</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 6px; text-align: center;">
+                                <div style="font-size: 12px; opacity: 0.8;">📱 Tablet</div>
+                                <div id="tabletCount" style="font-size: 28px; font-weight: 700; margin-top: 4px;">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- ANNOUNCEMENT BANNER SECTION -->
                 <div style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); padding: 20px; border-radius: 8px; margin-bottom: 40px; color: white;">
@@ -1571,8 +1602,10 @@
             setTimeout(() => loadWebsiteStatus(), 300);
             // Load banner data
             setTimeout(() => loadBannerData(), 300);
+            // Load active customers count
+            setTimeout(() => loadActiveCustomers(), 400);
             // Debug auth on load
-            setTimeout(() => debugAdminAuth(), 400);
+            setTimeout(() => debugAdminAuth(), 500);
         }
 
         // ANNOUNCEMENT BANNER FUNCTIONS
@@ -1727,6 +1760,68 @@
 
         // WEBSITE STATUS FUNCTIONS
         // DEBUG: Check admin authentication
+        // ================================================================
+        // LOAD ACTIVE CUSTOMERS COUNT WITH DEVICE BREAKDOWN
+        // ================================================================
+        function loadActiveCustomers() {
+            // Listen for changes in activeCustomers collection
+            db.collection('activeCustomers').onSnapshot(snapshot => {
+                const total = snapshot.size;
+                let mobileCount = 0;
+                let desktopCount = 0;
+                let tabletCount = 0;
+                
+                // Count by device type
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const deviceType = data.deviceType || 'desktop';
+                    
+                    if (deviceType === 'mobile') {
+                        mobileCount++;
+                    } else if (deviceType === 'tablet') {
+                        tabletCount++;
+                    } else {
+                        desktopCount++;
+                    }
+                });
+                
+                // Update total count
+                const countEl = document.getElementById('activeCustomersCount');
+                if (countEl) {
+                    countEl.textContent = total;
+                }
+                
+                // Update text
+                const textEl = document.getElementById('activeCustomersText');
+                if (textEl) {
+                    if (total === 0) {
+                        textEl.textContent = 'No customers browsing right now';
+                    } else if (total === 1) {
+                        textEl.textContent = '1 customer browsing';
+                    } else {
+                        textEl.textContent = total + ' customers browsing';
+                    }
+                }
+                
+                // Update device counts
+                const mobileEl = document.getElementById('mobileCount');
+                const desktopEl = document.getElementById('desktopCount');
+                const tabletEl = document.getElementById('tabletCount');
+                
+                if (mobileEl) mobileEl.textContent = mobileCount;
+                if (desktopEl) desktopEl.textContent = desktopCount;
+                if (tabletEl) tabletEl.textContent = tabletCount;
+                
+                console.log('👥 Active customers:', { total, mobile: mobileCount, desktop: desktopCount, tablet: tabletCount });
+            }, err => {
+                console.error('Error loading active customers:', err);
+                const textEl = document.getElementById('activeCustomersText');
+                if (textEl) {
+                    textEl.textContent = 'Error tracking customers';
+                }
+            });
+        }
+
         function debugAdminAuth() {
             auth.currentUser.getIdTokenResult().then(idTokenResult => {
                 const uid = auth.currentUser.uid;
