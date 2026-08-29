@@ -1090,22 +1090,52 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // CHECK WEBSITE STATUS ON PAGE LOAD
+        // MONITOR WEBSITE STATUS IN REAL-TIME
         function checkWebsiteStatus() {
-            db.collection('siteSettings').doc('status').get()
-                .then(doc => {
-                    const isOnline = !doc.exists || doc.data().isOnline !== false;
-                    
-                    if (!isOnline) {
-                        // Website is in maintenance mode
-                        enableMaintenanceMode();
-                    }
-                    console.log('✅ Website status checked:', isOnline ? 'ONLINE' : 'MAINTENANCE');
-                })
-                .catch(err => {
-                    console.error('Error checking website status:', err);
-                    // On error, assume website is online
-                });
+            // Use onSnapshot for real-time updates - listens continuously
+            db.collection('siteSettings').doc('status').onSnapshot(doc => {
+                const isOnline = !doc.exists || doc.data().isOnline !== false;
+                
+                if (!isOnline) {
+                    // Website is in maintenance mode
+                    enableMaintenanceMode();
+                    console.log('🔴 MAINTENANCE MODE ACTIVATED (real-time)');
+                } else {
+                    // Website is online - restore normal functionality
+                    disableMaintenanceMode();
+                    console.log('🟢 SITE ONLINE (real-time)');
+                }
+            }, err => {
+                console.error('Error monitoring website status:', err);
+                // On error, assume website is online
+            });
+        }
+
+        function disableMaintenanceMode() {
+            // Re-enable all interactive elements
+            document.querySelectorAll('button').forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                btn.title = '';
+            });
+
+            document.querySelectorAll('input, textarea, select').forEach(input => {
+                input.disabled = false;
+                input.style.opacity = '1';
+                input.style.cursor = 'auto';
+            });
+
+            // Remove maintenance mode class
+            document.body.classList.remove('maintenance-mode');
+            
+            // Hide announcement banner (or show only if it has content for non-maintenance)
+            const banner = document.getElementById('announcementBanner');
+            if (banner) {
+                banner.classList.remove('show');
+            }
+
+            console.log('✅ All elements re-enabled');
         }
 
         function enableMaintenanceMode() {
