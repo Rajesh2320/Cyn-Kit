@@ -1263,24 +1263,21 @@
             // Remove session when user closes page/tab
             window.addEventListener('beforeunload', () => {
                 if (sessionId) {
-                    // Use sendBeacon for reliable delivery (designed for this purpose)
-                    // This continues even after page is unloading
-                    const data = JSON.stringify({
-                        sessionId: sessionId,
-                        action: 'delete'
-                    });
+                    console.log('⏹️ Page closing - attempting to delete session:', sessionId);
                     
-                    // Try sendBeacon first (most reliable)
-                    if (navigator.sendBeacon) {
-                        // Can't directly call Firestore, but we signal the intent
-                        // Fallback: Direct Firestore delete with synchronous attempt
-                    }
-                    
-                    // Also try immediate delete (might complete before page closes)
+                    // Try immediate delete (might complete before page closes)
                     try {
-                        db.collection('activeCustomers').doc(sessionId).delete();
+                        // Use async delete with waitForSync flag if available
+                        db.collection('activeCustomers').doc(sessionId).delete()
+                            .then(() => {
+                                console.log('✅ Session deleted successfully on page close');
+                            })
+                            .catch(err => {
+                                console.error('❌ Error deleting session on close:', err.code, err.message);
+                                console.log('📝 Note: Stale session cleanup will remove this in 5 minutes');
+                            });
                     } catch (err) {
-                        console.error('Error removing session:', err);
+                        console.error('Error attempting session delete:', err);
                     }
                 }
             });
