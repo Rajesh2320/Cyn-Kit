@@ -1233,7 +1233,19 @@
                 console.log('✅ Customer session tracked:', sessionId, '| Device:', deviceType);
             })
             .catch(err => {
-                console.error('Error tracking customer:', err);
+                console.error('❌ ERROR tracking customer:', err);
+                console.error('❌ Error code:', err.code);
+                console.error('❌ Error message:', err.message);
+                console.error('🔍 DEBUG INFO:');
+                console.error('   sessionId:', sessionId);
+                console.error('   deviceType:', deviceType);
+                console.error('   Data sent:', { sessionId, deviceType, joinedAt: 'serverTimestamp', lastSeen: 'serverTimestamp', userAgent: navigator.userAgent });
+                console.error('🔧 Troubleshooting:');
+                console.error('   1. Check Firestore Rules - does activeCustomers allow unauthenticated writes?');
+                console.error('   2. Verify Rules include: request.auth == null');
+                console.error('   3. Check if sessionId and deviceType fields are required');
+                console.error('   4. Is deviceType value valid? (mobile/desktop/tablet)');
+                console.error('   5. Open Firebase Console → Firestore → Rules → Check syntax');
             });
 
             // Update lastSeen every 30 seconds (keep session alive)
@@ -2973,7 +2985,15 @@
         // ============================================================
         // INIT
         // ============================================================
+        console.log('🚀 Initializing Cynthia\'s Kitchen...');
         loadProducts();
+        
+        // Start tracking customer session
+        console.log('📍 Starting customer tracking...');
+        trackActiveCustomer();
+        console.log('🔄 Starting page change detection...');
+        
+        // Note: startHeartbeat() and updatePageTracking() are called from within trackActiveCustomer()
     </script>
 </body>
 </html>
