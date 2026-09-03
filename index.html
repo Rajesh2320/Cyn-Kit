@@ -1129,11 +1129,8 @@
             // Remove maintenance mode class
             document.body.classList.remove('maintenance-mode');
             
-            // Hide announcement banner (or show only if it has content for non-maintenance)
-            const banner = document.getElementById('announcementBanner');
-            if (banner) {
-                banner.classList.remove('show');
-            }
+            // Don't auto-hide banner - let it be controlled by its own enabled flag
+            // Banner visibility is now independent of website status
 
             console.log('✅ All elements re-enabled');
         }
