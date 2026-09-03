@@ -1462,6 +1462,7 @@
         let currentOrderId = null;
         let currentOrder = null;
         let deliveryChart, productsChart, salesTrendChart, peakTimeChart;
+        let bannerIsEnabled = false;  // Track banner state properly
         let autoRefreshInterval = null;
         let lastRefreshTime = null;
 
@@ -1640,9 +1641,12 @@
                         const data = doc.data();
                         document.getElementById('bannerMessage').value = data.message || '';
                         updateBannerPreview();
-                        updateBannerStatus(data.enabled !== false);
+                        const isEnabled = data.enabled !== false;
+                        bannerIsEnabled = isEnabled;  // ✅ Set state when loading
+                        updateBannerStatus(isEnabled);
                         console.log('✅ Banner data loaded');
                     } else {
+                        bannerIsEnabled = false;  // ✅ Set state
                         updateBannerStatus(false);
                         console.log('ℹ️ No banner data yet');
                     }
@@ -1667,6 +1671,7 @@
         }
 
         function updateBannerStatus(isEnabled) {
+            bannerIsEnabled = isEnabled;  // ✅ Track state in variable
             const toggle = document.getElementById('bannerToggle');
             const circle = document.getElementById('bannerToggleCircle');
             const badge = document.getElementById('bannerBadge');
@@ -1689,8 +1694,12 @@
 
         function toggleBanner() {
             const toggle = document.getElementById('bannerToggle');
-            const currentlyEnabled = toggle.style.background === '#4caf50';
-            const newStatus = !currentlyEnabled; // Toggle
+            const newStatus = !bannerIsEnabled;  // ✅ Use tracked state variable
+            
+            console.log('🔍 DEBUG toggleBanner:');
+            console.log('   currentUser:', currentUser?.email);
+            console.log('   bannerIsEnabled:', bannerIsEnabled);
+            console.log('   newStatus:', newStatus);
             
             toggle.style.pointerEvents = 'none';
             toggle.style.opacity = '0.6';
@@ -1702,13 +1711,15 @@
                 updatedBy: currentUser.email
             }, { merge: true })
                 .then(() => {
-                    updateBannerStatus(newStatus);
+                    updateBannerStatus(newStatus);  // ✅ This now updates bannerIsEnabled
                     toggle.style.pointerEvents = 'auto';
                     toggle.style.opacity = '1';
                     console.log('✅ Banner toggled:', newStatus ? 'ENABLED' : 'DISABLED');
                 })
                 .catch(err => {
-                    console.error('Error toggling banner:', err);
+                    console.error('❌ Error toggling banner:', err);
+                    console.error('❌ Error code:', err.code);
+                    console.error('❌ Error message:', err.message);
                     toggle.style.pointerEvents = 'auto';
                     toggle.style.opacity = '1';
                     alert('❌ Error: ' + err.message);
