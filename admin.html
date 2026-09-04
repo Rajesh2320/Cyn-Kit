@@ -949,6 +949,60 @@
                     </div>
                 </div>
                 
+                <!-- DAILY TRAFFIC ANALYTICS SECTION -->
+                <div style="background: linear-gradient(135deg, #FF9933 0%, #1E40AF 50%, #138808 100%); padding: 20px; border-radius: 8px; margin-bottom: 40px; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
+                    <h3 style="margin: 0 0 20px 0; font-size: 18px;">📊 Daily Traffic Analytics</h3>
+                    
+                    <!-- Traffic Cards Row -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                        <!-- Today's Visitors -->
+                        <div style="background: rgba(255,255,255,0.15); padding: 16px; border-radius: 8px; border-left: 4px solid #FF9933;">
+                            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">📍 Today's Visitors</div>
+                            <div id="todayVisitors" style="font-size: 32px; font-weight: 700;">0</div>
+                        </div>
+                        
+                        <!-- Yesterday's Visitors -->
+                        <div style="background: rgba(255,255,255,0.15); padding: 16px; border-radius: 8px; border-left: 4px solid #1E40AF;">
+                            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">📊 Yesterday's Visitors</div>
+                            <div id="yesterdayVisitors" style="font-size: 32px; font-weight: 700;">0</div>
+                        </div>
+                        
+                        <!-- 7-Day Average -->
+                        <div style="background: rgba(255,255,255,0.15); padding: 16px; border-radius: 8px; border-left: 4px solid #138808;">
+                            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">📈 7-Day Average</div>
+                            <div id="sevenDayAvg" style="font-size: 32px; font-weight: 700;">0</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Device Breakdown -->
+                    <div style="background: rgba(255,255,255,0.1); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Device Breakdown (Today):</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 12px; opacity: 0.9;">📱 Mobile</div>
+                                <div id="todayMobile" style="font-size: 24px; font-weight: 700;">0</div>
+                                <div id="todayMobilePercent" style="font-size: 11px; opacity: 0.8;">0%</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 12px; opacity: 0.9;">💻 Desktop</div>
+                                <div id="todayDesktop" style="font-size: 24px; font-weight: 700;">0</div>
+                                <div id="todayDesktopPercent" style="font-size: 11px; opacity: 0.8;">0%</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 12px; opacity: 0.9;">📱 Tablet</div>
+                                <div id="todayTablet" style="font-size: 24px; font-weight: 700;">0</div>
+                                <div id="todayTabletPercent" style="font-size: 11px; opacity: 0.8;">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- TRAFFIC CHART SECTION -->
+                <div class="chart-container" style="margin-bottom: 40px;">
+                    <h3>📈 7-Day Traffic Trend</h3>
+                    <canvas id="trafficChart"></canvas>
+                </div>
+                
                 <!-- ANNOUNCEMENT BANNER SECTION -->
                 <div style="background: linear-gradient(135deg, #FF9933 0%, #1E40AF 50%, #138808 100%); padding: 20px; border-radius: 8px; margin-bottom: 40px; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
                     <div>
@@ -1461,7 +1515,7 @@
         let allOrders = [];
         let currentOrderId = null;
         let currentOrder = null;
-        let deliveryChart, productsChart, salesTrendChart, peakTimeChart;
+        let deliveryChart, productsChart, salesTrendChart, peakTimeChart, trafficChart;
         let bannerIsEnabled = false;  // Track banner state properly
         let autoRefreshInterval = null;
         let lastRefreshTime = null;
@@ -2391,6 +2445,7 @@
             document.getElementById('repeatCustomersTable').innerHTML = repeatHtml || '<tr><td colspan="6" style="text-align: center; color: #999;">No repeat customers</td></tr>';
 
             drawCharts(mtdOrders);
+            loadDailyTraffic();  // Load daily traffic analytics
         }
 
         function drawCharts(mtdOrders) {
@@ -2648,6 +2703,151 @@
                     scales: {
                         y: {
                             beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // ================================================================
+        // DAILY TRAFFIC ANALYTICS
+        // ================================================================
+        
+        function loadDailyTraffic() {
+            console.log('📊 Loading daily traffic data...');
+            
+            db.collection('dailyTraffic')
+                .orderBy('date', 'desc')
+                .limit(7)
+                .get()
+                .then(snapshot => {
+                    const trafficData = [];
+                    const dateLabels = [];
+                    const visitCounts = [];
+                    
+                    // Sort by date ascending for chart display
+                    const docs = snapshot.docs.reverse();
+                    
+                    let todayVisitors = 0;
+                    let yesterdayVisitors = 0;
+                    let todayMobile = 0, todayDesktop = 0, todayTablet = 0;
+                    
+                    const today = new Date().toISOString().split('T')[0];
+                    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                    
+                    let totalVisitors = 0;
+                    
+                    docs.forEach(doc => {
+                        const data = doc.data();
+                        trafficData.push(data);
+                        dateLabels.push(formatDateLabel(data.date));
+                        visitCounts.push(data.totalVisitors || 0);
+                        totalVisitors += (data.totalVisitors || 0);
+                        
+                        if (data.date === today) {
+                            todayVisitors = data.totalVisitors || 0;
+                            todayMobile = data.mobile || 0;
+                            todayDesktop = data.desktop || 0;
+                            todayTablet = data.tablet || 0;
+                        } else if (data.date === yesterday) {
+                            yesterdayVisitors = data.totalVisitors || 0;
+                        }
+                    });
+                    
+                    // Calculate 7-day average
+                    const sevenDayAvg = docs.length > 0 ? Math.round(totalVisitors / docs.length) : 0;
+                    
+                    // Update cards
+                    document.getElementById('todayVisitors').textContent = todayVisitors;
+                    document.getElementById('yesterdayVisitors').textContent = yesterdayVisitors;
+                    document.getElementById('sevenDayAvg').textContent = sevenDayAvg;
+                    
+                    // Update device breakdown
+                    const totalToday = todayMobile + todayDesktop + todayTablet || 1;
+                    document.getElementById('todayMobile').textContent = todayMobile;
+                    document.getElementById('todayMobilePercent').textContent = Math.round((todayMobile / totalToday) * 100) + '%';
+                    document.getElementById('todayDesktop').textContent = todayDesktop;
+                    document.getElementById('todayDesktopPercent').textContent = Math.round((todayDesktop / totalToday) * 100) + '%';
+                    document.getElementById('todayTablet').textContent = todayTablet;
+                    document.getElementById('todayTabletPercent').textContent = Math.round((todayTablet / totalToday) * 100) + '%';
+                    
+                    // Draw 7-day traffic chart
+                    drawTrafficChart(dateLabels, visitCounts);
+                    
+                    console.log('✅ Daily traffic data loaded:', {
+                        todayVisitors,
+                        yesterdayVisitors,
+                        sevenDayAvg,
+                        daysTracked: docs.length
+                    });
+                })
+                .catch(err => {
+                    console.error('❌ Error loading daily traffic:', err);
+                });
+        }
+        
+        function formatDateLabel(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return days[date.getDay()] + ' ' + months[date.getMonth()] + ' ' + date.getDate();
+        }
+        
+        function drawTrafficChart(labels, data) {
+            if (trafficChart) trafficChart.destroy();
+            
+            const trafficCtx = document.getElementById('trafficChart').getContext('2d');
+            trafficChart = new Chart(trafficCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Daily Visitors',
+                        data: data,
+                        borderColor: '#FF9933',
+                        backgroundColor: 'rgba(255, 153, 51, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#138808',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#1e1e2e',
+                                font: { size: 14, weight: 'bold' },
+                                padding: 20
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#1e1e2e',
+                                font: { size: 12 }
+                            },
+                            grid: {
+                                color: 'rgba(30, 30, 46, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#1e1e2e',
+                                font: { size: 12 }
+                            },
+                            grid: {
+                                color: 'rgba(30, 30, 46, 0.1)'
+                            }
                         }
                     }
                 }
