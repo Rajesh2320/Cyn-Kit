@@ -2977,6 +2977,92 @@
         }
 
         // ============================================================
+        // DAILY TRAFFIC TRACKING
+        // ============================================================
+        
+        function recordDailyTraffic() {
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];  // YYYY-MM-DD format
+            
+            console.log('📊 Recording daily traffic snapshot for:', dateStr);
+            
+            // Count unique visitors from activeCustomers collection
+            db.collection('activeCustomers').get()
+                .then(snapshot => {
+                    const visitors = {
+                        mobile: 0,
+                        desktop: 0,
+                        tablet: 0
+                    };
+                    
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const deviceType = data.deviceType || 'unknown';
+                        if (visitors.hasOwnProperty(deviceType)) {
+                            visitors[deviceType]++;
+                        }
+                    });
+                    
+                    const totalVisitors = visitors.mobile + visitors.desktop + visitors.tablet;
+                    
+                    console.log('📊 Today\'s Traffic:', {
+                        date: dateStr,
+                        total: totalVisitors,
+                        mobile: visitors.mobile,
+                        desktop: visitors.desktop,
+                        tablet: visitors.tablet
+                    });
+                    
+                    // Save to dailyTraffic collection
+                    if (totalVisitors > 0) {
+                        db.collection('dailyTraffic').doc(dateStr).set({
+                            date: dateStr,
+                            totalVisitors: totalVisitors,
+                            mobile: visitors.mobile,
+                            desktop: visitors.desktop,
+                            tablet: visitors.tablet,
+                            recordedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true })
+                        .then(() => {
+                            console.log('✅ Daily traffic snapshot saved');
+                        })
+                        .catch(err => {
+                            console.error('❌ Error saving daily traffic:', err);
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error('❌ Error reading active customers:', err);
+                });
+        }
+        
+        function cleanupOldTraffic() {
+            const eightDaysAgo = new Date();
+            eightDaysAgo.setDate(eightDaysAgo.getDate() - 8);
+            const cutoffDate = eightDaysAgo.toISOString().split('T')[0];
+            
+            console.log('🧹 Cleaning up traffic data older than:', cutoffDate);
+            
+            db.collection('dailyTraffic').where('date', '<', cutoffDate).get()
+                .then(snapshot => {
+                    console.log('📋 Found', snapshot.size, 'old traffic records to delete');
+                    
+                    snapshot.forEach(doc => {
+                        doc.ref.delete()
+                            .then(() => {
+                                console.log('✅ Deleted old traffic:', doc.id);
+                            })
+                            .catch(err => {
+                                console.error('❌ Error deleting:', doc.id, err);
+                            });
+                    });
+                })
+                .catch(err => {
+                    console.error('❌ Error checking old traffic data:', err);
+                });
+        }
+
+        // ============================================================
         // INIT
         // ============================================================
         console.log('🚀 Initializing Cynthia\'s Kitchen...');
@@ -2986,6 +3072,16 @@
         console.log('📍 Starting customer tracking...');
         trackActiveCustomer();
         console.log('🔄 Starting page change detection...');
+        
+        // Record daily traffic snapshot
+        console.log('📊 Recording daily traffic...');
+        recordDailyTraffic();
+        
+        // Clean up old traffic data (run every hour)
+        console.log('🧹 Setting up traffic cleanup...');
+        setInterval(() => {
+            cleanupOldTraffic();
+        }, 60 * 60 * 1000);  // Every 1 hour
         
         // Note: startHeartbeat() and updatePageTracking() are called from within trackActiveCustomer()
     </script>
